@@ -85,7 +85,7 @@
                 const data = await response.json();
                 
                 if(!data || data.error) {
-                    showError("NIM tidak ditemukan. Pastikan Anda sudah rekam sidik jari di meja pendaftaran.");
+                    showError("NIM tidak ditemukan. Pastikan Anda sudah rekam sidik jari di meja pendaftaran atau konfirmasi ke staf AIK dan MKWK");
                     btn.innerText = "PERIKSA SEKARANG"; btn.disabled = false;
                     return;
                 }
