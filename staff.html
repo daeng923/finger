@@ -3,138 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Fingerprint UMM</title>
+    <title>Scanner Terminal - Fingerprint UMM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; user-select: none; -webkit-user-select: none; }
         .umm-gradient { background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); }
+        .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-20">
+<body class="bg-slate-50 min-h-screen">
 
-    <!-- Header Panel -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <div class="w-10 h-10 umm-gradient rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-red-200">A</div>
-                <div>
-                    <h1 class="font-extrabold text-slate-800 uppercase text-sm leading-none">Panel Otoritas Petugas</h1>
-                    <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-1">Verifikasi Sidik Jari AIK & MKWK</p>
+    <!-- Modal Notifikasi -->
+    <div id="statusModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 modal-overlay">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl max-w-sm w-full p-10 text-center animate__animated animate__zoomIn border">
+            <div id="modalIcon" class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-width="2"></path></svg>
+            </div>
+            <h3 id="modalTitle" class="text-xl font-black text-slate-800 mb-2 uppercase tracking-tighter italic">Info</h3>
+            <p id="modalText" class="text-slate-500 text-xs leading-relaxed mb-8"></p>
+            <button onclick="closeModal()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest">Tutup</button>
+        </div>
+    </div>
+
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 h-20 flex items-center px-6 justify-between shadow-sm">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 umm-gradient rounded-xl flex items-center justify-center text-white font-black shadow-lg">UMM</div>
+            <h1 class="font-extrabold text-slate-800 uppercase text-sm tracking-tight leading-none">Terminal Scanner</h1>
+        </div>
+        <div class="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase">
+            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span> Sistem Siap
+        </div>
+    </nav>
+
+    <main class="max-w-[1600px] mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Kolom Input Scanner -->
+        <div class="lg:col-span-4 lg:sticky lg:top-28">
+            <div class="bg-white rounded-[2.5rem] shadow-xl p-8 border border-slate-100">
+                <h2 class="text-center text-xl font-black text-slate-800 mb-6 uppercase tracking-tight italic">Pendaftaran</h2>
+                <div class="relative">
+                    <input type="text" id="nimInput" maxlength="15" oninput="this.value = this.value.replace(/[^0-9]/g, '')" autocomplete="off" class="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-3xl text-center text-4xl font-black text-slate-700 focus:border-red-600 transition-all outline-none shadow-inner" placeholder="----">
+                    <div id="scan-loading" class="hidden absolute right-6 top-1/2 -translate-y-1/2">
+                        <div class="animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-b-red-600"></div>
+                    </div>
+                </div>
+                <p class="text-center text-[10px] font-bold text-slate-400 mt-4 uppercase tracking-[0.2em]">Tempel KTM atau Input NIM</p>
+
+                <!-- Feedback Visual Cepat -->
+                <div id="fast-feedback" class="hidden mt-8 text-center animate__animated animate__zoomIn">
+                    <div id="fb-card" class="rounded-[2.5rem] p-8 shadow-2xl text-white mb-6">
+                        <span id="fb-status" class="text-[10px] font-black uppercase tracking-widest block mb-2 opacity-80"></span>
+                        <div id="fb-id" class="text-7xl font-black font-mono leading-none tracking-tighter mb-4">---</div>
+                        <div class="text-[9px] font-bold px-5 py-2.5 bg-black/10 rounded-2xl inline-block italic uppercase">Silakan Ke Meja Mesin</div>
+                    </div>
                 </div>
             </div>
-            <button onclick="refreshData()" class="p-3 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all text-slate-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-            </button>
-        </div>
-    </header>
-
-    <main class="max-w-5xl mx-auto p-6">
-        <!-- Label Status -->
-        <div class="mb-8 flex justify-between items-center px-2">
-            <span class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Daftar Tunggu Verifikasi</span>
-            <span id="count-badge" class="bg-red-100 text-red-700 text-[10px] px-4 py-1.5 rounded-full font-black uppercase shadow-sm">0 Mahasiswa</span>
         </div>
 
-        <!-- List Antrean -->
-        <div id="admin-list" class="space-y-4">
-            <!-- Data akan dimuat melalui JavaScript -->
-        </div>
+        <!-- Kolom Monitoring dengan Paginasi -->
+        <div class="lg:col-span-8">
+            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden text-sm flex flex-col h-full">
+                <div class="p-8 bg-slate-900 text-white flex justify-between items-center shrink-0">
+                    <div>
+                        <h2 class="text-lg font-bold uppercase tracking-tight italic">Monitor Antrean</h2>
+                        <p class="text-[9px] font-bold opacity-50 uppercase tracking-widest mt-1">Sesi Real-Time</p>
+                    </div>
+                    <span id="update-time" class="text-[9px] font-bold opacity-50 uppercase bg-white/10 px-3 py-1.5 rounded-lg">Update: --:--</span>
+                </div>
 
-        <!-- Tampilan Kosong -->
-        <div id="admin-empty" class="hidden py-40 text-center animate__animated animate__fadeIn">
-            <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <div class="overflow-x-auto grow">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
+                            <tr>
+                                <th class="px-8 py-6 text-center">ID</th>
+                                <th class="px-8 py-6">NIM Mahasiswa</th>
+                                <th class="px-8 py-6">Waktu</th>
+                                <th class="px-8 py-6 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-slate-50 text-slate-700">
+                            <!-- Data akan dimuat melalui JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Kontrol Paginasi -->
+                <div class="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        Menampilkan <span id="pageStart">0</span> - <span id="pageEnd">0</span> dari <span id="totalItems">0</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="prevBtn" onclick="changePage(-1)" class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all">Sebelumnya</button>
+                        <button id="nextBtn" onclick="changePage(1)" class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all">Berikutnya</button>
+                    </div>
+                </div>
             </div>
-            <p class="text-slate-300 font-black uppercase text-xs tracking-[0.3em] italic">Tidak Ada Antrean Menunggu</p>
         </div>
     </main>
 
     <script>
-        // MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI
         const API_URL = "https://script.google.com/macros/s/AKfycbxiuQXcJvrw9vE2FutImOIP6ysmsOsDK5O3zko_wBDtQfp7OPCI9OzF45o1lriW4WfRPA/exec";
+        
+        // State Paginasi
+        let allData = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
 
-        window.onload = () => {
-            refreshData();
-            setInterval(refreshData, 5000); // Segarkan data otomatis setiap 5 detik
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = e => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && [73, 67, 74].includes(e.keyCode)) || (e.ctrlKey && e.keyCode == 85)) return false; };
+
+        const nimInput = document.getElementById('nimInput');
+        window.onload = () => { 
+            nimInput.focus(); 
+            refreshData(); 
+            setInterval(refreshData, 5000); 
         };
+        document.addEventListener('click', () => { if(!nimInput.disabled) nimInput.focus(); });
 
         async function refreshData() {
             try {
-                const response = await fetch(`${API_URL}?action=list`);
-                const data = await response.json();
+                const res = await fetch(`${API_URL}?action=list`);
+                const data = await res.json();
                 
-                // Mendukung format data langsung atau objek dengan properti registrations
-                const regs = data.registrations || data; 
-                const list = document.getElementById('admin-list');
+                // Pastikan data adalah array (DataFingerprint)
+                allData = (data.registrations || data || []).reverse(); 
                 
-                // Urutan antrean diatur agar ID terkecil (pendaftar pertama) muncul paling atas
-                const pending = regs
-                    .filter(i => !i.isVerified)
-                    .sort((a, b) => parseInt(a.id) - parseInt(b.id));
-                
-                document.getElementById('count-badge').innerText = `${pending.length} Mahasiswa`;
-                document.getElementById('admin-empty').classList.toggle('hidden', pending.length > 0);
-                
-                list.innerHTML = pending.map(item => `
-                    <div class="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 animate__animated animate__fadeInUp">
-                        <div class="flex items-center gap-8 w-full md:w-auto">
-                            <!-- Badge ID -->
-                            <div class="w-20 h-20 bg-slate-900 rounded-[2rem] flex items-center justify-center text-white text-3xl font-black font-mono shadow-xl border-4 border-white shrink-0">
-                                ${item.id}
-                            </div>
-                            <!-- Info Mahasiswa -->
-                            <div>
-                                <div class="text-3xl font-black text-slate-800 tracking-tighter">${item.nim}</div>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${item.nama || 'Peserta AIK'}</span>
-                                    <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${item.time}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Aksi Konfirmasi -->
-                        <div class="w-full md:w-auto">
-                            <button onclick="confirmVerification('${item.nim}', this)" class="w-full md:w-auto umm-gradient text-white px-12 py-5 rounded-2xl font-black text-xs uppercase shadow-lg shadow-red-100 hover:opacity-90 active:scale-95 transition-all">
-                                Konfirmasi Verifikasi
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (e) {
-                console.error("Gagal sinkronisasi data:", e);
+                document.getElementById('last-update').innerText = "Update: " + new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+                renderTable();
+            } catch(e) {
+                console.error("Gagal memuat data:", e);
             }
         }
 
-        async function confirmVerification(nim, btn) {
-            // Konfirmasi sederhana sebelum proses
-            if(!confirm(`Konfirmasi NIM ${nim} telah selesai melakukan perekaman sidik jari?`)) return;
-            
-            const originalText = btn.innerText;
-            btn.innerText = "PROSES...";
-            btn.disabled = true;
+        function renderTable() {
+            const tableBody = document.getElementById('tableBody');
+            const totalItems = allData.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-            try {
-                const res = await fetch(`${API_URL}?action=verify&nim=${nim}`);
-                const data = await res.json();
-                
-                if(data.success) {
-                    // Beri feedback visual sukses sejenak
-                    btn.innerText = "BERHASIL!";
-                    btn.className = btn.className.replace('umm-gradient', 'bg-emerald-500');
-                    setTimeout(() => refreshData(), 1000);
-                } else {
-                    alert("Gagal: " + (data.error || "Terjadi kesalahan sistem"));
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                }
-            } catch(e) {
-                alert("Gangguan koneksi ke server.");
-                btn.innerText = originalText;
-                btn.disabled = false;
+            // Validasi currentPage agar tidak out of bounds setelah refresh
+            if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIdx = (currentPage - 1) * itemsPerPage;
+            const endIdx = Math.min(startIdx + itemsPerPage, totalItems);
+            const pageData = allData.slice(startIdx, endIdx);
+
+            // Update statistik
+            document.getElementById('pageStart').innerText = totalItems === 0 ? 0 : startIdx + 1;
+            document.getElementById('pageEnd').innerText = endIdx;
+            document.getElementById('totalItems').innerText = totalItems;
+
+            // Update tombol
+            document.getElementById('prevBtn').disabled = (currentPage === 1);
+            document.getElementById('nextBtn').disabled = (currentPage === totalPages || totalPages === 0);
+
+            if (totalItems === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="px-8 py-20 text-center text-slate-300 font-black uppercase italic tracking-widest text-xs">Belum ada antrean hari ini</td></tr>`;
+                return;
             }
+
+            tableBody.innerHTML = pageData.map(item => `
+                <tr class="hover:bg-slate-50/50 transition-all animate__animated animate__fadeIn">
+                    <td class="px-8 py-6 text-center">
+                        <span class="bg-slate-900 text-white px-5 py-2 rounded-2xl font-mono font-black text-xl shadow-lg">${item.id}</span>
+                    </td>
+                    <td class="px-8 py-6">
+                        <div class="font-black text-slate-800 text-lg">${item.nim}</div>
+                        <div class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">${item.nama || 'Mahasiswa'}</div>
+                    </td>
+                    <td class="px-8 py-6 text-slate-400 font-bold text-[10px] uppercase">${item.time}</td>
+                    <td class="px-8 py-6 text-center">
+                        <span class="px-4 py-2 rounded-xl text-[10px] font-black uppercase border ${item.isVerified ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-100 text-slate-400 border-slate-200'}">
+                            ${item.isVerified ? '✓ Selesai' : '⌛ Antre'}
+                        </span>
+                    </td>
+                </tr>`).join('');
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            renderTable();
+        }
+
+        nimInput.onkeydown = async (e) => {
+            if(e.key === 'Enter') {
+                const nim = nimInput.value.trim();
+                if(nim.length !== 15) {
+                    showModal("NIM Tidak Valid", "NIM harus berjumlah tepat 15 digit angka.");
+                    return;
+                }
+
+                nimInput.disabled = true;
+                document.getElementById('scan-loading').classList.remove('hidden');
+
+                try {
+                    const res = await fetch(`${API_URL}?action=scan&nim=${nim}`);
+                    const data = await res.json();
+                    
+                    document.getElementById('scan-loading').classList.add('hidden');
+
+                    if(data.error) {
+                        showModal("Akses Ditolak", data.error);
+                        resetScanner();
+                    } else {
+                        handleScanSuccess(data);
+                    }
+                } catch(e) {
+                    showModal("Koneksi Error", "Gagal menghubungi server. Periksa jaringan Anda.");
+                    resetScanner();
+                }
+            }
+        };
+
+        function handleScanSuccess(data) {
+            const feedback = document.getElementById('fast-feedback');
+            document.getElementById('fb-id').innerText = data.idFinger;
+            document.getElementById('fb-status').innerText = data.exists ? "DATA TERDAFTAR" : "REGISTRASI BERHASIL";
+            document.getElementById('fb-card').className = `rounded-[2.5rem] p-8 shadow-2xl text-white ${data.exists ? 'bg-amber-500' : 'bg-emerald-600'}`;
+            
+            feedback.classList.remove('hidden');
+            setTimeout(resetScanner, 4000);
+            
+            // Pindahkan ke halaman 1 agar mahasiswa bisa melihat input barunya
+            currentPage = 1; 
+            refreshData();
+        }
+
+        function resetScanner() {
+            nimInput.value = ''; 
+            nimInput.disabled = false;
+            document.getElementById('fast-feedback').classList.add('hidden');
+            nimInput.focus();
+        }
+
+        function showModal(t, m) {
+            document.getElementById('modalTitle').innerText = t;
+            document.getElementById('modalText').innerText = m;
+            document.getElementById('statusModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('statusModal').classList.add('hidden');
+            nimInput.focus();
         }
     </script>
 </body>
