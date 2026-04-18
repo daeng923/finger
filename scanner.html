@@ -3,26 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Fingerprint - UMM</title>
+    <title>Scanner Terminal - UMM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; user-select: none; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; user-select: none; -webkit-user-select: none; }
         .umm-gradient { background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); }
         .calling-row { background: #fffbeb; border-left: 8px solid #f59e0b; }
+        .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-20">
+<body class="bg-slate-50 min-h-screen">
+
+    <div id="statusModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 modal-overlay">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl max-w-sm w-full p-10 text-center animate__animated animate__zoomIn">
+            <div id="modalIcon" class="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 bg-red-50 text-red-500"></div>
+            <h3 id="modalTitle" class="text-xl font-black text-slate-800 mb-2 uppercase tracking-tighter"></h3>
+            <p id="modalText" class="text-slate-500 text-sm leading-relaxed mb-8"></p>
+            <button onclick="closeModal()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest">Tutup</button>
+        </div>
+    </div>
 
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 h-20 flex items-center px-6 justify-between">
         <div class="flex items-center gap-4">
-            <div class="w-10 h-10 umm-gradient rounded-xl flex items-center justify-center text-white font-black">UMM</div>
+            <div class="w-10 h-10 umm-gradient rounded-xl flex items-center justify-center text-white font-black shadow-lg">UMM</div>
             <h1 class="font-extrabold text-slate-800 uppercase text-sm">Scanner Terminal</h1>
         </div>
         <div class="flex items-center gap-3">
-            <!-- WAJIB DIKLIK AGAR SUARA AKTIF -->
-            <button id="voiceBtn" onclick="initVoice()" class="flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl text-xs font-black uppercase transition-all">
+            <button id="voiceBtn" onclick="initVoice()" class="flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl text-[10px] font-black uppercase transition-all">
                 <span id="vIcon">🔇</span> <span id="vText">Aktifkan Suara</span>
             </button>
             <div id="qLabel" class="hidden flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase border border-amber-100">
@@ -31,23 +40,25 @@
         </div>
     </nav>
 
-    <main class="max-w-[1400px] mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <main class="max-w-[1600px] mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4">
             <div class="bg-white rounded-[2.5rem] shadow-xl p-8 border border-slate-100 sticky top-28">
-                <input type="text" id="nimInput" maxlength="15" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-3xl text-center text-4xl font-black text-slate-700 focus:border-red-600 outline-none" placeholder="----">
-                <p class="text-center text-[10px] font-bold text-slate-400 mt-4 uppercase tracking-widest">Input NIM Untuk Antrean</p>
+                <h2 class="text-center text-xl font-black text-slate-800 mb-6">PENDAFTARAN</h2>
+                <input type="text" id="nimInput" maxlength="15" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-3xl text-center text-4xl font-black text-slate-700 focus:border-red-600 outline-none transition-all" placeholder="----">
+                <div id="scan-loading" class="hidden text-center mt-4"><div class="animate-spin rounded-full h-8 w-8 border-4 border-b-red-600 mx-auto"></div></div>
+                <div id="fast-feedback" class="hidden mt-8 text-center animate__animated animate__zoomIn">
+                    <div id="fb-card" class="rounded-[2rem] p-8 shadow-2xl text-white mb-6">
+                        <div id="fb-id" class="text-7xl font-black mb-2">---</div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest opacity-80">Silakan ke Meja Mesin</p>
+                    </div>
+                </div>
             </div>
         </div>
-
         <div class="lg:col-span-8">
-            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden">
+            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden text-sm">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-50 text-slate-400 text-[10px] font-black uppercase border-b">
-                        <tr>
-                            <th class="px-8 py-6 text-center">ID</th>
-                            <th class="px-8 py-6">NIM Mahasiswa</th>
-                            <th class="px-8 py-6">Status</th>
-                        </tr>
+                    <thead class="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b">
+                        <tr><th class="px-8 py-6 text-center">ID</th><th class="px-8 py-6">NIM Mahasiswa</th><th class="px-8 py-6">Status</th></tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
                 </table>
@@ -55,71 +66,88 @@
         </div>
     </main>
 
-    <!-- LOG DEBUG UNTUK ADMIN -->
-    <div id="debugLog" class="fixed bottom-4 right-4 text-[9px] bg-black/80 text-white p-2 rounded-lg font-mono opacity-50">Sistem Siap...</div>
-
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxiuQXcJvrw9vE2FutImOIP6ysmsOsDK5O3zko_wBDtQfp7OPCI9OzF45o1lriW4WfRPA/exec";
-        let isVoiceReady = false;
-        let lastCallTime = 0;
+        let isVoiceReady = false, lastCallTime = 0;
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = e => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && [73, 67, 74].includes(e.keyCode)) || (e.ctrlKey && e.keyCode == 85)) return false; };
 
         function initVoice() {
             isVoiceReady = true;
-            document.getElementById('voiceBtn').className = "flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-2xl text-xs font-black uppercase shadow-lg";
-            document.getElementById('vIcon').innerText = "🔊";
-            document.getElementById('vText').innerText = "Suara Aktif";
-            speak("Sistem suara aktif");
+            document.getElementById('voiceBtn').className = "flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-2xl text-[10px] font-black uppercase shadow-lg";
+            document.getElementById('vIcon').innerText = "🔊"; document.getElementById('vText').innerText = "Suara Aktif";
+            speak("Suara aktif");
         }
 
         function speak(text) {
             if (!isVoiceReady) return;
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'id-ID';
-            msg.rate = 0.9;
+            msg.lang = 'id-ID'; msg.rate = 0.9;
             window.speechSynthesis.speak(msg);
         }
 
-        async function updateData() {
+        async function refresh() {
             try {
                 const res = await fetch(`${API_URL}?action=list`);
-                const data = await responseJson = await res.json();
-                
-                const registrations = data.registrations || [];
+                const data = await res.json();
+                const regs = data.registrations || [];
                 const lastCall = data.lastCall || { nim: "", time: "0" };
 
-                // Deteksi Panggilan Manual
-                const serverTime = Number(lastCall.time);
-                if (serverTime > lastCallTime && lastCall.nim !== "") {
-                    lastCallTime = serverTime;
-                    document.getElementById('debugLog').innerText = "Sinyal Panggilan Diterima: " + lastCall.nim;
-                    speak(`Nomor Induk Mahasiswa ${lastCall.nim.split('').join(' ')}, silakan menuju meja mesin.`);
+                if (Number(lastCall.time) > lastCallTime && lastCall.nim !== "") {
+                    lastCallTime = Number(lastCall.time);
+                    speak(`NIM ${lastCall.nim.split('').join(' ')}, silakan ke meja mesin.`);
                 }
 
-                if (lastCall.nim) {
+                if(lastCall.nim) {
                     document.getElementById('qLabel').classList.remove('hidden');
                     document.getElementById('qNim').innerText = lastCall.nim;
                 }
 
-                document.getElementById('tableBody').innerHTML = registrations.map(item => {
+                document.getElementById('tableBody').innerHTML = regs.map(item => {
                     const isCalled = item.nim === lastCall.nim && !item.isVerified;
-                    return `
-                    <tr class="${isCalled ? 'calling-row animate__animated animate__pulse animate__infinite' : ''}">
-                        <td class="px-8 py-6 text-center"><span class="bg-slate-900 text-white px-4 py-2 rounded-xl font-black">${item.id}</span></td>
+                    return `<tr class="border-b transition-all ${isCalled ? 'calling-row animate__animated animate__pulse animate__infinite' : ''}">
+                        <td class="px-8 py-6 text-center"><span class="bg-slate-900 text-white px-5 py-2 rounded-xl font-black">${item.id}</span></td>
                         <td class="px-8 py-6 font-black text-lg">${item.nim}</td>
-                        <td class="px-8 py-6">
-                            <span class="text-[10px] font-black uppercase ${item.isVerified ? 'text-emerald-600' : 'text-amber-600'}">
-                                ${item.isVerified ? '✓ Selesai' : (isCalled ? '📢 Dipanggil' : '⌛ Antre')}
-                            </span>
+                        <td class="px-8 py-6 text-[10px] font-black uppercase">
+                            ${item.isVerified ? '<span class="text-emerald-600">✓ Selesai</span>' : (isCalled ? '<span class="text-amber-600">📢 Dipanggil</span>' : '<span class="text-slate-400">⌛ Antre</span>')}
                         </td>
                     </tr>`;
                 }).join('');
-            } catch (e) {
-                console.error(e);
-            }
+            } catch(e) {}
         }
 
-        window.onload = () => { setInterval(updateData, 3000); updateData(); };
+        document.getElementById('nimInput').onkeydown = async (e) => {
+            if(e.key === 'Enter' && e.target.value.length === 15) {
+                const nim = e.target.value;
+                e.target.disabled = true;
+                document.getElementById('scan-loading').classList.remove('hidden');
+                try {
+                    const res = await fetch(`${API_URL}?action=scan&nim=${nim}`);
+                    const data = await res.json();
+                    document.getElementById('scan-loading').classList.add('hidden');
+                    if(data.error) {
+                        showModal("Ditolak", data.error);
+                        e.target.disabled = false; e.target.value = "";
+                    } else {
+                        document.getElementById('fb-id').innerText = data.idFinger;
+                        document.getElementById('fb-card').className = "rounded-[2rem] p-8 shadow-2xl text-white " + (data.exists ? "bg-amber-500" : "bg-emerald-600");
+                        document.getElementById('fast-feedback').classList.remove('hidden');
+                        setTimeout(() => { location.reload(); }, 4000);
+                    }
+                } catch(e) { location.reload(); }
+            }
+        };
+
+        function showModal(t, m) {
+            document.getElementById('modalTitle').innerText = t;
+            document.getElementById('modalText').innerText = m;
+            document.getElementById('statusModal').classList.remove('hidden');
+        }
+        function closeModal() { document.getElementById('statusModal').classList.add('hidden'); }
+
+        setInterval(refresh, 4000); refresh();
     </script>
 </body>
 </html>
