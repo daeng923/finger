@@ -3,42 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cek Status Mandiri - UMM</title>
+    <title>Cek Status ID Finger AIK & MKWK UMM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .umm-gradient { background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center p-6">
-    <script>const API_URL = "https://script.google.com/macros/s/AKfycbzOCnpPS2pI4ObD3Oh_8IJMdFVIdvNlegmeWB22aVYKRQxbjSv4kGjLp9H3ma5ThL5SEA/exec";</script>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+    <!-- GANTI DENGAN URL GAS ANDA -->
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzOCnpPS2pI4ObD3Oh_8IJMdFVIdvNlegmeWB22aVYKRQxbjSv4kGjLp9H3ma5ThL5SEA/exec";
+    </script>
 
-    <div id="search-box" class="max-w-md w-full bg-white rounded-[3rem] shadow-2xl p-10 text-center border border-slate-200 animate__animated animate__fadeIn">
-        <div class="w-20 h-20 umm-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-red-100">
-            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="3" stroke-linecap="round"></path></svg>
+    <div class="max-w-md w-full">
+        <!-- Logo & Header -->
+        <div class="text-center mb-8 animate__animated animate__fadeIn">
+            <div class="w-16 h-16 umm-gradient rounded-2xl flex items-center justify-center text-white font-black shadow-lg mx-auto mb-4 text-xl">UMM</div>
+            <h1 class="text-xl font-extrabold text-slate-800 leading-tight uppercase tracking-tighter">Cek Status Data ID Finger</h1>
+            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">AIK & MKWK Univ. Muhammadiyah Malang</p>
         </div>
-        <h2 class="text-2xl font-black text-slate-800 mb-2 tracking-tight leading-none uppercase">Cek Status</h2>
-        <p class="text-slate-500 text-sm mb-8">Ketik NIM untuk kroscek hasil verifikasi fingerprint.</p>
-        <input type="text" id="nimInput" class="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center text-xl font-bold text-slate-700 outline-none focus:border-red-600 transition-all mb-4" placeholder="Masukkan NIM">
-        <button onclick="handleCheck()" class="w-full umm-gradient text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">Periksa Status</button>
-    </div>
 
-    <!-- Result Card -->
-    <div id="result-box" class="hidden max-w-sm w-full bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-200 animate__animated animate__zoomIn">
-        <div class="p-8 umm-gradient text-white text-center">
-            <h3 class="text-sm font-bold uppercase tracking-widest opacity-80">Kartu Verifikasi Digital</h3>
-        </div>
-        <div class="p-10 text-center">
-            <div id="res-badge" class="px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border mb-6 inline-block"></div>
-            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Generated ID</div>
-            <div id="res-id" class="text-7xl font-black text-slate-800 font-mono tracking-tighter mb-6 leading-none">---</div>
-            <div id="res-alert" class="hidden p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-[10px] font-bold leading-tight mb-4 animate__animated animate__headShake">
-                STATUS BELUM BERUBAH? <br>
-                <span class="font-normal opacity-70">Silakan lapor ke petugas di meja mesin sidik jari.</span>
+        <!-- Search Box -->
+        <div id="search-box" class="glass-card rounded-[2.5rem] shadow-2xl p-8 border border-white text-center animate__animated animate__zoomIn">
+            <div class="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"></path></svg>
             </div>
-            <button onclick="location.reload()" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-red-600 transition-all">← Ganti NIM</button>
+            <p class="text-slate-600 text-sm mb-6 font-medium">Masukkan NIM Anda untuk melihat hasil verifikasi perekaman sidik jari.</p>
+            
+            <div class="relative mb-4">
+                <input type="text" id="nimInput" class="w-full p-5 bg-slate-100 border-2 border-transparent focus:border-red-600 focus:bg-white rounded-2xl text-center text-2xl font-black text-slate-700 outline-none transition-all shadow-inner" placeholder="KETIK NIM">
+            </div>
+            
+            <button onclick="handleCheck()" id="btnCheck" class="w-full umm-gradient text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all">Periksa Sekarang</button>
+            
+            <p class="mt-6 text-[10px] text-slate-400 font-bold uppercase tracking-tighter italic">Gunakan NIM resmi yang terdaftar di Master Data</p>
+        </div>
+
+        <!-- Result Card -->
+        <div id="result-box" class="hidden glass-card rounded-[3rem] shadow-2xl overflow-hidden border border-white animate__animated animate__fadeInUp">
+            <div class="p-8 umm-gradient text-white text-center relative overflow-hidden">
+                <div class="relative z-10">
+                    <h3 class="text-xs font-black uppercase tracking-widest opacity-80">Kartu Verifikasi Digital</h3>
+                    <p class="text-[9px] font-bold uppercase mt-1">Sistem Fingerprint AIK & MKWK</p>
+                </div>
+                <!-- Dekorasi Background -->
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+            </div>
+
+            <div class="p-10 text-center">
+                <div id="res-badge" class="px-5 py-2 rounded-full text-[10px] font-black uppercase border mb-8 inline-flex items-center gap-2 shadow-sm">
+                    <span id="res-dot" class="w-2 h-2 rounded-full"></span>
+                    <span id="res-status-text">---</span>
+                </div>
+
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Generated ID Fingerprint</div>
+                <div id="res-id" class="text-8xl font-black text-slate-800 font-mono tracking-tighter mb-8 leading-none">---</div>
+                
+                <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 text-left space-y-4 mb-8">
+                    <div>
+                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Nomor Induk Mahasiswa</div>
+                        <div id="res-nim" class="font-extrabold text-slate-800 text-lg leading-tight">---</div>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Nama Mahasiswa</div>
+                        <div id="res-name" class="font-extrabold text-slate-700 text-base leading-tight uppercase">---</div>
+                    </div>
+                </div>
+
+                <div id="res-alert" class="hidden p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-[10px] font-black leading-tight mb-8 animate__animated animate__headShake">
+                    BELUM TERVERIFIKASI?<br>
+                    <span class="font-bold opacity-70 uppercase text-[9px]">Silakan segera melapor ke petugas perekaman.</span>
+                </div>
+
+                <button onclick="location.reload()" class="flex items-center gap-2 mx-auto text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-red-600 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-width="2" stroke-linecap="round"></path></svg>
+                    Kembali
+                </button>
+            </div>
         </div>
     </div>
 
@@ -46,27 +91,55 @@
         async function handleCheck() {
             const nim = document.getElementById('nimInput').value.trim();
             if(!nim) return;
-            const btn = document.querySelector('button');
-            btn.innerText = "MENGECEK..."; btn.disabled = true;
+
+            const btn = document.getElementById('btnCheck');
+            btn.innerText = "MENGAMBIL DATA...";
+            btn.disabled = true;
 
             try {
                 const response = await fetch(`${API_URL}?action=check&nim=${nim}`);
                 const data = await response.json();
-                if(!data) { alert("NIM tidak ditemukan di data hari ini."); location.reload(); return; }
+                
+                if(!data) {
+                    alert("Data tidak ditemukan. Pastikan Anda sudah melakukan scan di meja pendaftaran.");
+                    location.reload();
+                    return;
+                }
                 
                 document.getElementById('search-box').classList.add('hidden');
                 document.getElementById('result-box').classList.remove('hidden');
+                
+                // Isi Data Ke Kartu
                 document.getElementById('res-id').innerText = data.id;
+                document.getElementById('res-nim').innerText = data.nim;
+                document.getElementById('res-name').innerText = data.nama || "MAHASISWA";
                 
                 const badge = document.getElementById('res-badge');
-                badge.innerText = data.isVerified ? "✓ TERVERIFIKASI" : "⌛ MENUNGGU PEREKAMAN";
-                badge.className = `px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border mb-6 inline-block ${data.isVerified ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200 animate-pulse'}`;
+                const dot = document.getElementById('res-dot');
+                const statusText = document.getElementById('res-status-text');
                 
-                if(!data.isVerified) {
-                    setTimeout(() => document.getElementById('res-alert').classList.remove('hidden'), 10000);
+                if(data.isVerified) {
+                    badge.className = "px-5 py-2 rounded-full text-[10px] font-black uppercase border border-emerald-200 bg-emerald-50 text-emerald-700 mb-8 inline-flex items-center gap-2 shadow-sm";
+                    dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                    statusText.innerText = "TERVERIFIKASI";
+                    document.getElementById('res-alert').classList.add('hidden');
+                } else {
+                    badge.className = "px-5 py-2 rounded-full text-[10px] font-black uppercase border border-red-200 bg-red-50 text-red-600 mb-8 inline-flex items-center gap-2 shadow-sm";
+                    dot.className = "w-2 h-2 rounded-full bg-red-500";
+                    statusText.innerText = "MENUNGGU JARI";
+                    document.getElementById('res-alert').classList.remove('hidden');
                 }
-            } catch (e) { alert("Error API"); }
+            } catch(e) {
+                alert("Gagal terhubung ke sistem. Coba beberapa saat lagi.");
+                btn.innerText = "COBA LAGI";
+                btn.disabled = false;
+            }
         }
+
+        // Input enter trigger
+        document.getElementById('nimInput').onkeypress = (e) => {
+            if(e.key === 'Enter') handleCheck();
+        };
     </script>
 </body>
 </html>
