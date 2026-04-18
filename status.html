@@ -10,151 +10,118 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            user-select: none; /* Mencegah seleksi teks */
+            user-select: none;
+            -webkit-user-select: none;
         }
         .umm-gradient { background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); }
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
-    <script>
-        // --- KONFIGURASI API ---
-        const API_URL = "https://script.google.com/macros/s/AKfycbzOCnpPS2pI4ObD3Oh_8IJMdFVIdvNlegmeWB22aVYKRQxbjSv4kGjLp9H3ma5ThL5SEA/exec";
 
-        // --- PENGAMANAN SEDERHANA ---
-        // 1. Nonaktifkan Klik Kanan
-        document.addEventListener('contextmenu', event => event.preventDefault());
-
-        // 2. Nonaktifkan F12 dan Shortcut Inspect lainnya
-        document.onkeydown = function (e) {
-            // Disable F12
-            if (e.keyCode == 123) return false;
-            
-            // Disable Ctrl+Shift+I (Inspect)
-            if (e.ctrlKey && e.shiftKey && e.keyCode == 73) return false;
-            
-            // Disable Ctrl+Shift+C (Element Selector)
-            if (e.ctrlKey && e.shiftKey && e.keyCode == 67) return false;
-            
-            // Disable Ctrl+Shift+J (Console)
-            if (e.ctrlKey && e.shiftKey && e.keyCode == 74) return false;
-            
-            // Disable Ctrl+U (View Source)
-            if (e.ctrlKey && e.keyCode == 85) return false;
-        };
-    </script>
+    <div id="errorModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 modal-overlay animate__animated animate__fadeIn">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl max-w-sm w-full p-10 text-center animate__animated animate__zoomIn">
+            <div class="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-width="2" stroke-linecap="round"></path></svg>
+            </div>
+            <h3 class="text-xl font-black text-slate-800 mb-2 uppercase tracking-tighter">Data Tidak Ada</h3>
+            <p id="errorText" class="text-slate-500 text-sm leading-relaxed mb-8">NIM Anda belum terdaftar di sistem perekaman hari ini.</p>
+            <button onclick="closeModal()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-800 transition-all">Tutup</button>
+        </div>
+    </div>
 
     <div class="max-w-md w-full">
-        <!-- Logo & Header -->
-        <div class="text-center mb-8 animate__animated animate__fadeIn">
-            <div class="w-16 h-16 umm-gradient rounded-2xl flex items-center justify-center text-white font-black shadow-lg mx-auto mb-4 text-xl">UMM</div>
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 umm-gradient rounded-2xl flex items-center justify-center text-white font-black shadow-lg mx-auto mb-4 text-xl tracking-tighter">UMM</div>
             <h1 class="text-xl font-extrabold text-slate-800 leading-tight uppercase tracking-tighter">Cek Status Data ID Finger</h1>
-            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">AIK & MKWK Univ. Muhammadiyah Malang</p>
+            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">AIK & MKWK Univ. Muhammadiyah Malang</p>
         </div>
 
-        <!-- Search Box -->
         <div id="search-box" class="glass-card rounded-[2.5rem] shadow-2xl p-8 border border-white text-center animate__animated animate__zoomIn">
             <div class="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"></path></svg>
             </div>
-            <p class="text-slate-600 text-sm mb-6 font-medium">Silakan masukkan NIM Anda untuk memverifikasi status perekaman sidik jari.</p>
-            
-            <div class="relative mb-4">
-                <input type="text" id="nimInput" class="w-full p-5 bg-slate-100 border-2 border-transparent focus:border-red-600 focus:bg-white rounded-2xl text-center text-2xl font-black text-slate-700 outline-none transition-all shadow-inner" placeholder="MASUKKAN NIM" autocomplete="off">
-            </div>
-            
-            <button onclick="handleCheck()" id="btnCheck" class="w-full umm-gradient text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all">Periksa Sekarang</button>
+            <p class="text-slate-600 text-sm mb-6 font-medium">Masukkan NIM Anda untuk melihat hasil verifikasi.</p>
+            <input type="text" id="nimInput" class="w-full p-5 bg-slate-100 border-2 border-transparent focus:border-red-600 focus:bg-white rounded-2xl text-center text-2xl font-black text-slate-700 outline-none transition-all mb-4" placeholder="KETIK NIM" autocomplete="off">
+            <button onclick="handleCheck()" id="btnCheck" class="w-full umm-gradient text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">Periksa Sekarang</button>
         </div>
 
-        <!-- Result Card -->
         <div id="result-box" class="hidden glass-card rounded-[3rem] shadow-2xl overflow-hidden border border-white animate__animated animate__fadeInUp">
-            <div class="p-8 umm-gradient text-white text-center relative overflow-hidden">
-                <div class="relative z-10">
-                    <h3 class="text-xs font-black uppercase tracking-widest opacity-80">Kartu Verifikasi Digital</h3>
-                    <p class="text-[9px] font-bold uppercase mt-1">Sistem Fingerprint AIK & MKWK</p>
-                </div>
+            <div class="p-8 umm-gradient text-white text-center">
+                <h3 class="text-xs font-black uppercase tracking-widest opacity-80">Kartu Verifikasi Digital</h3>
             </div>
-
             <div class="p-10 text-center">
-                <div id="res-badge" class="px-5 py-2 rounded-full text-[10px] font-black uppercase border mb-8 inline-flex items-center gap-2 shadow-sm">
+                <div id="res-badge" class="px-5 py-2 rounded-full text-[10px] font-black uppercase border mb-8 inline-flex items-center gap-2">
                     <span id="res-dot" class="w-2 h-2 rounded-full"></span>
                     <span id="res-status-text">---</span>
                 </div>
-
-                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Generated ID Fingerprint</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Generated ID Fingerprint</div>
                 <div id="res-id" class="text-8xl font-black text-slate-800 font-mono tracking-tighter mb-8 leading-none">---</div>
-                
                 <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 text-left mb-8">
-                    <div>
-                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Nomor Induk Mahasiswa</div>
-                        <div id="res-nim" class="font-extrabold text-slate-800 text-lg leading-tight">---</div>
-                    </div>
+                    <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Nomor Induk Mahasiswa</div>
+                    <div id="res-nim" class="font-extrabold text-slate-800 text-lg">---</div>
                 </div>
-
-                <div id="res-alert" class="hidden p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-[10px] font-black leading-tight mb-8">
-                    DATA BELUM TERVERIFIKASI<br>
-                    <span class="font-bold opacity-70 uppercase text-[8px]">Mohon hubungi petugas di Meja Mesin.</span>
-                </div>
-
-                <button onclick="location.reload()" class="flex items-center gap-2 mx-auto text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-red-600 transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-width="2" stroke-linecap="round"></path></svg>
-                    Kembali
-                </button>
+                <button onclick="location.reload()" class="text-[11px] font-black text-slate-400 uppercase tracking-widest">← Kembali</button>
             </div>
         </div>
     </div>
 
     <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzOCnpPS2pI4ObD3Oh_8IJMdFVIdvNlegmeWB22aVYKRQxbjSv4kGjLp9H3ma5ThL5SEA/exec";
+
+        // Security: No Right Click & No F12
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = e => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && [73, 67, 74].includes(e.keyCode)) || (e.ctrlKey && e.keyCode == 85)) return false; };
+
         async function handleCheck() {
             const nim = document.getElementById('nimInput').value.trim();
             if(!nim) return;
-
             const btn = document.getElementById('btnCheck');
-            btn.innerText = "SEDANG MEMPROSES...";
-            btn.disabled = true;
+            btn.innerText = "PROSES..."; btn.disabled = true;
 
             try {
                 const response = await fetch(`${API_URL}?action=check&nim=${nim}`);
                 const data = await response.json();
                 
-                if(!data) {
-                    alert("Data tidak ditemukan di database perekaman hari ini.");
-                    location.reload();
+                if(!data || data.error) {
+                    showError("NIM tidak ditemukan. Pastikan Anda sudah rekam sidik jari di meja pendaftaran.");
+                    btn.innerText = "PERIKSA SEKARANG"; btn.disabled = false;
                     return;
                 }
                 
                 document.getElementById('search-box').classList.add('hidden');
                 document.getElementById('result-box').classList.remove('hidden');
-                
-                // Set data ke UI
                 document.getElementById('res-id').innerText = data.id;
                 document.getElementById('res-nim').innerText = data.nim;
                 
-                const badge = document.getElementById('res-badge');
-                const dot = document.getElementById('res-dot');
-                const statusText = document.getElementById('res-status-text');
-                
+                const b = document.getElementById('res-badge'), d = document.getElementById('res-dot'), s = document.getElementById('res-status-text');
                 if(data.isVerified) {
-                    badge.className = "px-5 py-2 rounded-full text-[10px] font-black uppercase border border-emerald-200 bg-emerald-50 text-emerald-700 mb-8 inline-flex items-center gap-2 shadow-sm";
-                    dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-                    statusText.innerText = "TERVERIFIKASI";
-                    document.getElementById('res-alert').classList.add('hidden');
+                    b.className = "px-5 py-2 rounded-full text-[10px] font-black uppercase border border-emerald-200 bg-emerald-50 text-emerald-700 mb-8 inline-flex items-center gap-2 shadow-sm";
+                    d.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                    s.innerText = "TERVERIFIKASI";
                 } else {
-                    badge.className = "px-5 py-2 rounded-full text-[10px] font-black uppercase border border-red-200 bg-red-50 text-red-600 mb-8 inline-flex items-center gap-2 shadow-sm";
-                    dot.className = "w-2 h-2 rounded-full bg-red-500";
-                    statusText.innerText = "MENUNGGU JARI";
-                    document.getElementById('res-alert').classList.remove('hidden');
+                    b.className = "px-5 py-2 rounded-full text-[10px] font-black uppercase border border-red-200 bg-red-50 text-red-600 mb-8 inline-flex items-center gap-2 shadow-sm";
+                    d.className = "w-2 h-2 rounded-full bg-red-500";
+                    s.innerText = "MENUNGGU JARI";
                 }
             } catch(e) {
-                alert("Gangguan koneksi API.");
-                btn.innerText = "COBA LAGI";
-                btn.disabled = false;
+                showError("Gagal terhubung ke server. Periksa koneksi internet Anda.");
+                btn.innerText = "COBA LAGI"; btn.disabled = false;
             }
         }
 
-        document.getElementById('nimInput').onkeypress = (e) => {
-            if(e.key === 'Enter') handleCheck();
-        };
+        function showError(msg) {
+            document.getElementById('errorText').innerText = msg;
+            document.getElementById('errorModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('errorModal').classList.add('hidden');
+            document.getElementById('nimInput').focus();
+        }
+
+        document.getElementById('nimInput').onkeypress = (e) => { if(e.key === 'Enter') handleCheck(); };
     </script>
 </body>
 </html>
