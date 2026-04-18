@@ -19,51 +19,115 @@
             <div class="w-10 h-10 umm-gradient rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-red-200">A</div>
             <h1 class="font-extrabold text-slate-800 uppercase text-sm tracking-tight">Panel Otoritas Petugas</h1>
         </div>
-        <button onclick="refreshData()" class="p-3 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round"></path></svg></button>
+        <button onclick="refreshData()" class="p-3 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all text-slate-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round"></path></svg>
+        </button>
     </header>
 
     <main class="max-w-4xl mx-auto p-6">
-        <div class="mb-8 flex justify-between items-center">
+        <div class="mb-8 flex justify-between items-center px-2">
             <span class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Antrean Menunggu (FIFO)</span>
-            <span id="count-badge" class="bg-red-100 text-red-700 text-[10px] px-4 py-1.5 rounded-full font-black uppercase">0 Mahasiswa</span>
+            <span id="count-badge" class="bg-red-100 text-red-700 text-[10px] px-4 py-1.5 rounded-full font-black uppercase shadow-sm">0 Mahasiswa</span>
         </div>
+
+        <!-- Daftar Antrean -->
         <div id="admin-list" class="space-y-4"></div>
-        <div id="admin-empty" class="hidden py-40 text-center animate__animated animate__fadeIn text-slate-300 font-black uppercase text-[10px] italic tracking-[0.4em]">Tidak Ada Antrean</div>
+
+        <!-- Indikator Loading/Kosong -->
+        <div id="admin-empty" class="hidden py-40 text-center animate__animated animate__fadeIn">
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+            <p id="empty-text" class="text-slate-300 font-black uppercase text-[10px] italic tracking-[0.4em]">Tidak Ada Antrean</p>
+        </div>
     </main>
 
     <script>
-        const API_URL = "URL_GOOGLE_APPS_SCRIPT_ANDA";
+        // PENTING: Ganti URL di bawah ini dengan URL Web App dari Google Apps Script Anda
+        const API_URL = "https://script.google.com/macros/s/AKfycbxiuQXcJvrw9vE2FutImOIP6ysmsOsDK5O3zko_wBDtQfp7OPCI9OzF45o1lriW4WfRPA/exec";
 
         async function refreshData() {
+            if (API_URL === "URL_GOOGLE_APPS_SCRIPT_ANDA") {
+                document.getElementById('admin-empty').classList.remove('hidden');
+                document.getElementById('empty-text').innerText = "API URL Belum Diisi";
+                return;
+            }
+
             try {
                 const res = await fetch(`${API_URL}?action=list`);
                 const data = await res.json();
-                const pending = data.filter(i => !i.isVerified).sort((a, b) => parseInt(a.id) - parseInt(b.id));
                 
-                document.getElementById('count-badge').innerText = `${pending.length} Mahasiswa`;
-                document.getElementById('admin-empty').classList.toggle('hidden', pending.length > 0);
-                document.getElementById('admin-list').innerHTML = pending.map(item => `
-                    <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 animate__animated animate__fadeInUp">
+                // Menangani data apakah berupa array langsung atau objek {registrations: []}
+                const regs = data.registrations || (Array.isArray(data) ? data : []);
+                
+                // Urutkan berdasarkan ID terkecil (Pendaftar pertama di atas)
+                const pending = regs
+                    .filter(i => !i.isVerified)
+                    .sort((a, b) => parseInt(a.id) - parseInt(b.id));
+                
+                const list = document.getElementById('admin-list');
+                const badge = document.getElementById('count-badge');
+                const empty = document.getElementById('admin-empty');
+
+                badge.innerText = `${pending.length} Mahasiswa`;
+                empty.classList.toggle('hidden', pending.length > 0);
+                
+                if (pending.length === 0) {
+                    list.innerHTML = "";
+                    document.getElementById('empty-text').innerText = "Tidak Ada Antrean";
+                    return;
+                }
+
+                list.innerHTML = pending.map(item => `
+                    <div class="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 animate__animated animate__fadeInUp">
                         <div class="flex items-center gap-8 w-full md:w-auto">
-                            <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white text-2xl font-black font-mono shadow-xl">${item.id}</div>
+                            <div class="w-20 h-20 bg-slate-900 rounded-[2rem] flex items-center justify-center text-white text-3xl font-black font-mono shadow-xl border-4 border-white shrink-0">
+                                ${item.id}
+                            </div>
                             <div>
-                                <div class="text-2xl font-black text-slate-800 tracking-tighter">${item.nim}</div>
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">${item.nama || 'Peserta AIK'} • ${item.time}</div>
+                                <div class="text-3xl font-black text-slate-800 tracking-tighter">${item.nim}</div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${item.nama || 'Peserta AIK'}</span>
+                                    <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${item.time}</span>
+                                </div>
                             </div>
                         </div>
-                        <button onclick="confirmVer('${item.nim}', this)" class="w-full md:w-auto umm-gradient text-white px-10 py-5 rounded-2xl font-black text-xs uppercase shadow-lg hover:opacity-90 active:scale-95 transition-all">Konfirmasi Selesai</button>
+                        <button onclick="confirmVer('${item.nim}', this)" class="w-full md:w-auto umm-gradient text-white px-12 py-5 rounded-2xl font-black text-xs uppercase shadow-lg shadow-red-100 hover:opacity-90 active:scale-95 transition-all">
+                            Konfirmasi Selesai
+                        </button>
                     </div>`).join('');
-            } catch (e) {}
+            } catch (e) {
+                console.error("Fetch Error:", e);
+                document.getElementById('admin-empty').classList.remove('hidden');
+                document.getElementById('empty-text').innerText = "Gagal Memuat Data (Cek Koneksi)";
+            }
         }
 
         async function confirmVer(nim, btn) {
             if(!confirm(`Konfirmasi NIM ${nim} telah selesai rekam?`)) return;
+            
+            const originalText = btn.innerText;
             btn.innerText = "PROSES..."; btn.disabled = true;
+
             try {
                 const res = await fetch(`${API_URL}?action=verify&nim=${nim}`);
                 const data = await res.json();
-                if(data.success) { refreshData(); } else { alert(data.error); btn.innerText = "GAGAL"; btn.disabled = false; }
-            } catch(e) { alert("Koneksi Error"); btn.disabled = false; }
+                
+                if(data.success) { 
+                    btn.innerText = "BERHASIL!";
+                    btn.className = btn.className.replace('umm-gradient', 'bg-emerald-500');
+                    setTimeout(() => refreshData(), 1000); 
+                } else { 
+                    alert(data.error || "Gagal Verifikasi"); 
+                    btn.innerText = originalText; 
+                    btn.disabled = false; 
+                }
+            } catch(e) { 
+                alert("Koneksi Error"); 
+                btn.innerText = originalText;
+                btn.disabled = false; 
+            }
         }
 
         window.onload = () => { refreshData(); setInterval(refreshData, 5000); };
