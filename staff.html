@@ -14,69 +14,78 @@
 </head>
 <body class="bg-slate-50 min-h-screen pb-20">
 
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 h-20 flex items-center px-6 justify-between">
-        <div class="flex items-center gap-4">
-            <div class="w-10 h-10 umm-gradient rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-red-200">A</div>
-            <h1 class="font-extrabold text-slate-800 uppercase text-sm tracking-tight">Panel Otoritas Petugas</h1>
+    <!-- Header Panel -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 umm-gradient rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-red-200">A</div>
+                <div>
+                    <h1 class="font-extrabold text-slate-800 uppercase text-sm leading-none">Panel Otoritas Petugas</h1>
+                    <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-1">Verifikasi Sidik Jari AIK & MKWK</p>
+                </div>
+            </div>
+            <button onclick="refreshData()" class="p-3 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all text-slate-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </button>
         </div>
-        <button onclick="refreshData()" class="p-3 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all text-slate-600">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round"></path></svg>
-        </button>
     </header>
 
-    <main class="max-w-4xl mx-auto p-6">
+    <main class="max-w-5xl mx-auto p-6">
+        <!-- Label Status -->
         <div class="mb-8 flex justify-between items-center px-2">
-            <span class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Antrean Menunggu (FIFO)</span>
+            <span class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Daftar Tunggu Verifikasi (FIFO)</span>
             <span id="count-badge" class="bg-red-100 text-red-700 text-[10px] px-4 py-1.5 rounded-full font-black uppercase shadow-sm">0 Mahasiswa</span>
         </div>
 
-        <!-- Daftar Antrean -->
-        <div id="admin-list" class="space-y-4"></div>
+        <!-- List Antrean -->
+        <div id="admin-list" class="space-y-4">
+            <!-- Data akan dimuat melalui JavaScript -->
+        </div>
 
-        <!-- Indikator Loading/Kosong -->
+        <!-- Tampilan Kosong -->
         <div id="admin-empty" class="hidden py-40 text-center animate__animated animate__fadeIn">
-            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
             </div>
-            <p id="empty-text" class="text-slate-300 font-black uppercase text-[10px] italic tracking-[0.4em]">Tidak Ada Antrean</p>
+            <p class="text-slate-300 font-black uppercase text-xs tracking-[0.3em] italic">Tidak Ada Antrean Menunggu</p>
         </div>
     </main>
 
     <script>
-        // PENTING: Ganti URL di bawah ini dengan URL Web App dari Google Apps Script Anda
+        // MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI
         const API_URL = "https://script.google.com/macros/s/AKfycbxiuQXcJvrw9vE2FutImOIP6ysmsOsDK5O3zko_wBDtQfp7OPCI9OzF45o1lriW4WfRPA/exec";
 
-        async function refreshData() {
-            if (API_URL === "URL_GOOGLE_APPS_SCRIPT_ANDA") {
-                document.getElementById('admin-empty').classList.remove('hidden');
-                document.getElementById('empty-text').innerText = "API URL Belum Diisi";
-                return;
-            }
+        // Variabel kontrol untuk menghentikan refresh loop saat sedang konfirmasi
+        let isProcessing = false;
 
+        window.onload = () => {
+            refreshData();
+            // Jalankan loop refresh setiap 5 detik
+            setInterval(() => {
+                if (!isProcessing) {
+                    refreshData();
+                }
+            }, 5000);
+        };
+
+        async function refreshData() {
             try {
-                const res = await fetch(`${API_URL}?action=list`);
-                const data = await res.json();
+                const response = await fetch(`${API_URL}?action=list`);
+                const data = await response.json();
                 
-                // Menangani data apakah berupa array langsung atau objek {registrations: []}
-                const regs = data.registrations || (Array.isArray(data) ? data : []);
+                const regs = data.registrations || data; 
+                const list = document.getElementById('admin-list');
                 
-                // Urutkan berdasarkan ID terkecil (Pendaftar pertama di atas)
+                // Urutkan berdasarkan ID terkecil (mahasiswa paling lama antre di atas)
                 const pending = regs
-                    .filter(i => !i.isVerified)
+                    .filter(i => !i.isVerified && i.nim !== "000000")
                     .sort((a, b) => parseInt(a.id) - parseInt(b.id));
                 
-                const list = document.getElementById('admin-list');
-                const badge = document.getElementById('count-badge');
-                const empty = document.getElementById('admin-empty');
-
-                badge.innerText = `${pending.length} Mahasiswa`;
-                empty.classList.toggle('hidden', pending.length > 0);
+                document.getElementById('count-badge').innerText = `${pending.length} Mahasiswa`;
+                document.getElementById('admin-empty').classList.toggle('hidden', pending.length > 0);
                 
-                if (pending.length === 0) {
-                    list.innerHTML = "";
-                    document.getElementById('empty-text').innerText = "Tidak Ada Antrean";
-                    return;
-                }
+                // Jangan perbarui UI jika admin sedang memproses data untuk menghindari lompatan layar
+                if (isProcessing) return;
 
                 list.innerHTML = pending.map(item => `
                     <div class="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 animate__animated animate__fadeInUp">
@@ -93,44 +102,55 @@
                                 </div>
                             </div>
                         </div>
-                        <button onclick="confirmVer('${item.nim}', this)" class="w-full md:w-auto umm-gradient text-white px-12 py-5 rounded-2xl font-black text-xs uppercase shadow-lg shadow-red-100 hover:opacity-90 active:scale-95 transition-all">
-                            Konfirmasi Selesai
-                        </button>
-                    </div>`).join('');
+                        
+                        <div class="w-full md:w-auto">
+                            <button onclick="confirmVerification('${item.nim}', this)" class="w-full md:w-auto umm-gradient text-white px-12 py-5 rounded-2xl font-black text-xs uppercase shadow-lg shadow-red-100 hover:opacity-90 active:scale-95 transition-all">
+                                Konfirmasi Selesai
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
             } catch (e) {
-                console.error("Fetch Error:", e);
-                document.getElementById('admin-empty').classList.remove('hidden');
-                document.getElementById('empty-text').innerText = "Gagal Memuat Data (Cek Koneksi)";
+                console.error("Gagal sinkronisasi data:", e);
             }
         }
 
-        async function confirmVer(nim, btn) {
-            if(!confirm(`Konfirmasi NIM ${nim} telah selesai rekam?`)) return;
+        async function confirmVerification(nim, btn) {
+            if(!confirm(`Konfirmasi NIM ${nim} telah selesai melakukan perekaman sidik jari?`)) return;
+            
+            // Aktifkan mode processing untuk menghentikan refresh loop
+            isProcessing = true;
             
             const originalText = btn.innerText;
-            btn.innerText = "PROSES..."; btn.disabled = true;
+            btn.innerText = "SEDANG MEMPROSES...";
+            btn.disabled = true;
 
             try {
                 const res = await fetch(`${API_URL}?action=verify&nim=${nim}`);
                 const data = await res.json();
                 
-                if(data.success) { 
-                    btn.innerText = "BERHASIL!";
+                if(data.success) {
+                    btn.innerText = "DATA BERHASIL DISIMPAN!";
                     btn.className = btn.className.replace('umm-gradient', 'bg-emerald-500');
-                    setTimeout(() => refreshData(), 1000); 
-                } else { 
-                    alert(data.error || "Gagal Verifikasi"); 
-                    btn.innerText = originalText; 
-                    btn.disabled = false; 
+                    
+                    // Berikan jeda 1 detik agar admin bisa melihat feedback sukses
+                    setTimeout(() => {
+                        isProcessing = false; // Matikan mode processing
+                        refreshData(); // Jalankan refresh data secara manual
+                    }, 1000);
+                } else {
+                    alert("Gagal: " + (data.error || "Terjadi kesalahan sistem"));
+                    isProcessing = false;
+                    btn.innerText = originalText;
+                    btn.disabled = false;
                 }
-            } catch(e) { 
-                alert("Koneksi Error"); 
+            } catch(e) {
+                alert("Gangguan koneksi ke server.");
+                isProcessing = false;
                 btn.innerText = originalText;
-                btn.disabled = false; 
+                btn.disabled = false;
             }
         }
-
-        window.onload = () => { refreshData(); setInterval(refreshData, 5000); };
     </script>
 </body>
 </html>
