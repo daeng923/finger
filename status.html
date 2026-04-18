@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cek Status Mandiri - UMM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .umm-gradient { background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-6">
+    <script>const API_URL = "https://script.google.com/macros/s/AKfycbw3ELFkRdWCcXhIcHvTDho59awwh1UGn4EXJ0OZBLETRyOXgMNVaQYAzjmx4oFeSEu2iA/exec";</script>
+
+    <div id="search-box" class="max-w-md w-full bg-white rounded-[3rem] shadow-2xl p-10 text-center border border-slate-200 animate__animated animate__fadeIn">
+        <div class="w-20 h-20 umm-gradient rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-red-100">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="3" stroke-linecap="round"></path></svg>
+        </div>
+        <h2 class="text-2xl font-black text-slate-800 mb-2 tracking-tight leading-none uppercase">Cek Status</h2>
+        <p class="text-slate-500 text-sm mb-8">Ketik NIM untuk kroscek hasil verifikasi fingerprint.</p>
+        <input type="text" id="nimInput" class="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center text-xl font-bold text-slate-700 outline-none focus:border-red-600 transition-all mb-4" placeholder="Masukkan NIM">
+        <button onclick="handleCheck()" class="w-full umm-gradient text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">Periksa Status</button>
+    </div>
+
+    <!-- Result Card -->
+    <div id="result-box" class="hidden max-w-sm w-full bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-200 animate__animated animate__zoomIn">
+        <div class="p-8 umm-gradient text-white text-center">
+            <h3 class="text-sm font-bold uppercase tracking-widest opacity-80">Kartu Verifikasi Digital</h3>
+        </div>
+        <div class="p-10 text-center">
+            <div id="res-badge" class="px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border mb-6 inline-block"></div>
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Generated ID</div>
+            <div id="res-id" class="text-7xl font-black text-slate-800 font-mono tracking-tighter mb-6 leading-none">---</div>
+            <div id="res-alert" class="hidden p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-[10px] font-bold leading-tight mb-4 animate__animated animate__headShake">
+                STATUS BELUM BERUBAH? <br>
+                <span class="font-normal opacity-70">Silakan lapor ke petugas di meja mesin sidik jari.</span>
+            </div>
+            <button onclick="location.reload()" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-red-600 transition-all">← Ganti NIM</button>
+        </div>
+    </div>
+
+    <script>
+        async function handleCheck() {
+            const nim = document.getElementById('nimInput').value.trim();
+            if(!nim) return;
+            const btn = document.querySelector('button');
+            btn.innerText = "MENGECEK..."; btn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}?action=check&nim=${nim}`);
+                const data = await response.json();
+                if(!data) { alert("NIM tidak ditemukan di data hari ini."); location.reload(); return; }
+                
+                document.getElementById('search-box').classList.add('hidden');
+                document.getElementById('result-box').classList.remove('hidden');
+                document.getElementById('res-id').innerText = data.id;
+                
+                const badge = document.getElementById('res-badge');
+                badge.innerText = data.isVerified ? "✓ TERVERIFIKASI" : "⌛ MENUNGGU JARI";
+                badge.className = `px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border mb-6 inline-block ${data.isVerified ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200 animate-pulse'}`;
+                
+                if(!data.isVerified) {
+                    setTimeout(() => document.getElementById('res-alert').classList.remove('hidden'), 10000);
+                }
+            } catch (e) { alert("Error API"); }
+        }
+    </script>
+</body>
+</html>
