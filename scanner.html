@@ -12,6 +12,7 @@
         .umm-gradient { background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); }
         .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); }
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .waiting-row { background-color: #fffbeb; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
@@ -39,7 +40,6 @@
     </nav>
 
     <main class="max-w-[1600px] mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <!-- Kolom Input Scanner -->
         <div class="lg:col-span-4 lg:sticky lg:top-28">
             <div class="bg-white rounded-[2.5rem] shadow-xl p-8 border border-slate-100">
                 <h2 class="text-center text-xl font-black text-slate-800 mb-6 uppercase tracking-tight italic">Pendaftaran</h2>
@@ -51,7 +51,6 @@
                 </div>
                 <p class="text-center text-[10px] font-bold text-slate-400 mt-4 uppercase tracking-[0.2em]">Tempel KTM atau Input NIM</p>
 
-                <!-- Feedback Visual Cepat -->
                 <div id="fast-feedback" class="hidden mt-8 text-center animate__animated animate__zoomIn">
                     <div id="fb-card" class="rounded-[2.5rem] p-8 shadow-2xl text-white mb-6">
                         <span id="fb-status" class="text-[10px] font-black uppercase tracking-widest block mb-2 opacity-80"></span>
@@ -62,7 +61,6 @@
             </div>
         </div>
 
-        <!-- Kolom Monitoring dengan Paginasi -->
         <div class="lg:col-span-8">
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden text-sm flex flex-col h-full">
                 <div class="p-8 bg-slate-900 text-white flex justify-between items-center shrink-0">
@@ -73,23 +71,21 @@
                     <span id="update-time" class="text-[9px] font-bold opacity-50 uppercase bg-white/10 px-3 py-1.5 rounded-lg">Update: --:--</span>
                 </div>
 
-                <div class="overflow-x-auto grow">
+                <div class="overflow-x-auto grow min-h-[500px]">
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
                             <tr>
                                 <th class="px-8 py-6 text-center">ID</th>
                                 <th class="px-8 py-6">NIM Mahasiswa</th>
                                 <th class="px-8 py-6">Waktu</th>
-                                <th class="px-8 py-6 text-center">Status</th>
+                                <th class="px-8 py-6 text-center">Status & Antrean</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody" class="divide-y divide-slate-50 text-slate-700">
-                            <!-- Data akan dimuat melalui JavaScript -->
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Kontrol Paginasi -->
                 <div class="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
                     <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         Menampilkan <span id="pageStart">0</span> - <span id="pageEnd">0</span> dari <span id="totalItems">0</span>
@@ -106,7 +102,6 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxiuQXcJvrw9vE2FutImOIP6ysmsOsDK5O3zko_wBDtQfp7OPCI9OzF45o1lriW4WfRPA/exec";
         
-        // State Paginasi
         let allData = [];
         let currentPage = 1;
         const itemsPerPage = 10;
@@ -115,11 +110,13 @@
         document.onkeydown = e => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && [73, 67, 74].includes(e.keyCode)) || (e.ctrlKey && e.keyCode == 85)) return false; };
 
         const nimInput = document.getElementById('nimInput');
+        
         window.onload = () => { 
             nimInput.focus(); 
             refreshData(); 
             setInterval(refreshData, 5000); 
         };
+
         document.addEventListener('click', () => { if(!nimInput.disabled) nimInput.focus(); });
 
         async function refreshData() {
@@ -134,18 +131,30 @@
                     rawList = data;
                 }
                 
-                // Urutan dari Backend sudah Newest-First, jadi tidak perlu .reverse() di sini
-                // agar halaman 1 langsung berisi 10 data paling akhir (terbaru).
                 if (rawList.length > 0) {
-                    allData = rawList; 
+                    // FILTER: Jangan tampilkan "Start Point" (NIM 000000)
+                    const filtered = rawList.filter(item => item.nim && item.nim.toString() !== "000000" && item.nim.toString() !== "NIM_KTM");
+                    
+                    // Pisahkan data Menunggu dan Selesai
+                    const waiting = filtered
+                        .filter(i => !i.isVerified)
+                        .sort((a, b) => parseInt(a.id) - parseInt(b.id)); // FIFO: Lama di atas
+                    
+                    const completed = filtered
+                        .filter(i => i.isVerified)
+                        .sort((a, b) => parseInt(b.id) - parseInt(a.id)); // LIFO: Terbaru di atas
+                    
+                    // Gabungkan kembali
+                    allData = [...waiting, ...completed];
                 } else {
                     allData = [];
                 }
                 
-                document.getElementById('last-update').innerText = "Update: " + new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+                document.getElementById('update-time').innerText = "Update: " + new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
                 renderTable();
             } catch(e) {
-                console.error("Gagal memuat data dari spreadsheet:", e);
+                console.error("Gagal memuat data:", e);
+                renderTable(); 
             }
         }
 
@@ -154,15 +163,16 @@
             const totalItems = allData.length;
             const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-            // Validasi currentPage
-            if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
-            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages && totalPages > 0) {
+                currentPage = totalPages;
+            } else if (currentPage < 1) {
+                currentPage = 1;
+            }
 
             const startIdx = (currentPage - 1) * itemsPerPage;
             const endIdx = Math.min(startIdx + itemsPerPage, totalItems);
             const pageData = allData.slice(startIdx, endIdx);
 
-            // Update statistik UI
             document.getElementById('pageStart').innerText = totalItems === 0 ? 0 : startIdx + 1;
             document.getElementById('pageEnd').innerText = endIdx;
             document.getElementById('totalItems').innerText = totalItems;
@@ -175,8 +185,15 @@
                 return;
             }
 
-            tableBody.innerHTML = pageData.map(item => `
-                <tr class="hover:bg-slate-50/50 transition-all animate__animated animate__fadeIn">
+            // Temukan index pendaftar yang belum terverifikasi secara global untuk penomoran
+            const globalWaitingList = allData.filter(i => !i.isVerified);
+
+            tableBody.innerHTML = pageData.map(item => {
+                const waitingIndex = globalWaitingList.findIndex(w => w.id === item.id);
+                const isWaiting = !item.isVerified;
+                
+                return `
+                <tr class="hover:bg-slate-50/50 transition-all animate__animated animate__fadeIn ${isWaiting ? 'waiting-row' : ''}">
                     <td class="px-8 py-6 text-center">
                         <span class="bg-slate-900 text-white px-5 py-2 rounded-2xl font-mono font-black text-xl shadow-lg">${item.id || '---'}</span>
                     </td>
@@ -186,11 +203,15 @@
                     </td>
                     <td class="px-8 py-6 text-slate-400 font-bold text-[10px] uppercase">${item.time || '--:--'}</td>
                     <td class="px-8 py-6 text-center">
-                        <span class="px-4 py-2 rounded-xl text-[10px] font-black uppercase border ${item.isVerified ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-100 text-slate-400 border-slate-200'}">
-                            ${item.isVerified ? '✓ Selesai' : '⌛ Antre'}
-                        </span>
+                        <div class="flex flex-col items-center gap-1">
+                            <span class="px-4 py-2 rounded-xl text-[10px] font-black uppercase border ${item.isVerified ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}">
+                                ${item.isVerified ? '✓ Selesai' : '⌛ Antre'}
+                            </span>
+                            ${isWaiting ? `<span class="text-[9px] font-extrabold text-amber-500 uppercase tracking-tighter">Urutan ke-${waitingIndex + 1}</span>` : ''}
+                        </div>
                     </td>
-                </tr>`).join('');
+                </tr>`;
+            }).join('');
         }
 
         function changePage(direction) {
@@ -222,7 +243,7 @@
                         handleScanSuccess(data);
                     }
                 } catch(e) {
-                    showModal("Koneksi Error", "Gagal menghubungi server. Periksa jaringan Anda.");
+                    showModal("Koneksi Error", "Gagal menghubungi server.");
                     resetScanner();
                 }
             }
@@ -237,7 +258,6 @@
             feedback.classList.remove('hidden');
             setTimeout(resetScanner, 4000);
             
-            // Pindahkan ke halaman 1 agar mahasiswa bisa melihat input barunya yang paling atas
             currentPage = 1; 
             refreshData();
         }
