@@ -127,20 +127,17 @@
                 const res = await fetch(`${API_URL}?action=list`);
                 const data = await res.json();
                 
-                // Perbaikan deteksi format data dari backend
                 let rawList = [];
                 if (data && data.registrations && Array.isArray(data.registrations)) {
                     rawList = data.registrations;
                 } else if (Array.isArray(data)) {
                     rawList = data;
-                } else if (data && data.error) {
-                    console.error("Server error:", data.error);
-                    return;
                 }
                 
-                // Pastikan data yang diterima valid sebelum diproses
+                // Urutan dari Backend sudah Newest-First, jadi tidak perlu .reverse() di sini
+                // agar halaman 1 langsung berisi 10 data paling akhir (terbaru).
                 if (rawList.length > 0) {
-                    allData = [...rawList].reverse(); 
+                    allData = rawList; 
                 } else {
                     allData = [];
                 }
@@ -240,6 +237,7 @@
             feedback.classList.remove('hidden');
             setTimeout(resetScanner, 4000);
             
+            // Pindahkan ke halaman 1 agar mahasiswa bisa melihat input barunya yang paling atas
             currentPage = 1; 
             refreshData();
         }
