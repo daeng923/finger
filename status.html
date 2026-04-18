@@ -59,7 +59,7 @@
                 document.getElementById('res-id').innerText = data.id;
                 
                 const badge = document.getElementById('res-badge');
-                badge.innerText = data.isVerified ? "✓ TERVERIFIKASI" : "⌛ MENUNGGU JARI";
+                badge.innerText = data.isVerified ? "✓ TERVERIFIKASI" : "⌛ MENUNGGU PEREKAMAN";
                 badge.className = `px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border mb-6 inline-block ${data.isVerified ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200 animate-pulse'}`;
                 
                 if(!data.isVerified) {
