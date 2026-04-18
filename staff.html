@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Fingerprint - UMM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .umm-gradient { background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <script>const API_URL = "https://script.google.com/macros/s/AKfycbw3ELFkRdWCcXhIcHvTDho59awwh1UGn4EXJ0OZBLETRyOXgMNVaQYAzjmx4oFeSEu2iA/exec";</script>
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-[1000px] mx-auto px-6 h-20 flex items-center justify-between">
+            <h1 class="font-extrabold text-slate-800 text-lg uppercase tracking-tight italic">Panel Otoritas Petugas</h1>
+            <button onclick="location.reload()" class="p-3 bg-slate-100 rounded-xl"><svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round"></path></svg></button>
+        </div>
+    </header>
+
+    <main class="max-w-[1000px] mx-auto p-6">
+        <div id="admin-list" class="bg-white rounded-[2.5rem] shadow-2xl divide-y divide-slate-100 overflow-hidden border border-slate-200">
+            <!-- Items injected here -->
+        </div>
+        <div id="admin-empty" class="hidden py-40 text-center text-slate-300 font-black uppercase text-xs italic tracking-[0.4em]">Semua Selesai Terverifikasi</div>
+    </main>
+
+    <script>
+        window.onload = refreshData;
+        async function refreshData() {
+            try {
+                const response = await fetch(`${API_URL}?action=list`);
+                const data = await response.json();
+                const list = document.getElementById('admin-list');
+                const pending = data.filter(i => !i.isVerified);
+                document.getElementById('admin-empty').classList.toggle('hidden', pending.length > 0);
+                
+                list.innerHTML = pending.map(item => `
+                    <div class="p-8 flex items-center justify-between hover:bg-slate-50 transition-all animate__animated animate__fadeIn">
+                        <div class="flex items-center gap-8">
+                            <div class="text-4xl font-black font-mono text-slate-200">#${item.id}</div>
+                            <div>
+                                <div class="text-2xl font-black text-slate-800 tracking-tight">${item.nim}</div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Scan: ${item.time}</div>
+                            </div>
+                        </div>
+                        <button onclick="confirmRec('${item.nim}')" class="bg-red-600 hover:bg-red-700 text-white px-10 py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all">Konfirmasi</button>
+                    </div>
+                `).join('');
+            } catch (e) {}
+        }
+
+        async function confirmRec(nim) {
+            if(!confirm("Mahasiswa sudah rekam jari di mesin?")) return;
+            await fetch(`${API_URL}?action=verify&nim=${nim}`);
+            refreshData();
+        }
+    </script>
+</body>
+</html>
