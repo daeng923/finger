@@ -41,21 +41,35 @@
 
     <main class="max-w-[1600px] mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4 lg:sticky lg:top-28">
-            <div class="bg-white rounded-[2.5rem] shadow-xl p-8 border border-slate-100">
-                <h2 class="text-center text-xl font-black text-slate-800 mb-6 uppercase tracking-tight italic">Pendaftaran</h2>
+            <div class="bg-white rounded-[2.5rem] shadow-xl p-8 border border-slate-100 text-center">
+                <h2 class="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight italic">Pendaftaran</h2>
                 <div class="relative">
                     <input type="text" id="nimInput" maxlength="15" oninput="this.value = this.value.replace(/[^0-9]/g, '')" autocomplete="off" class="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-3xl text-center text-4xl font-black text-slate-700 focus:border-red-600 transition-all outline-none shadow-inner" placeholder="----">
                     <div id="scan-loading" class="hidden absolute right-6 top-1/2 -translate-y-1/2">
                         <div class="animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-b-red-600"></div>
                     </div>
                 </div>
-                <p class="text-center text-[10px] font-bold text-slate-400 mt-4 uppercase tracking-[0.2em]">Tempel KTM atau Input NIM</p>
+                <p class="text-[10px] font-bold text-slate-400 mt-4 uppercase tracking-[0.2em]">Tempel KTM atau Input NIM</p>
 
-                <div id="fast-feedback" class="hidden mt-8 text-center animate__animated animate__zoomIn">
-                    <div id="fb-card" class="rounded-[2.5rem] p-8 shadow-2xl text-white mb-6">
-                        <span id="fb-status" class="text-[10px] font-black uppercase tracking-widest block mb-2 opacity-80"></span>
-                        <div id="fb-id" class="text-7xl font-black font-mono leading-none tracking-tighter mb-4">---</div>
-                        <div class="text-[9px] font-bold px-5 py-2.5 bg-black/10 rounded-2xl inline-block italic uppercase">Silakan Ke Meja Mesin</div>
+                <!-- Kotak Info Sinkronisasi -->
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3 text-left animate__animated animate__fadeIn">
+                    <div class="shrink-0 w-8 h-8 bg-blue-500 rounded-xl flex items-center justify-center text-white shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2.5" stroke-linecap="round"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-blue-700 uppercase leading-none tracking-tight">Pemberitahuan</p>
+                        <p class="text-[9px] font-bold text-blue-500 uppercase mt-1 leading-tight tracking-tighter">Data akan muncul di monitor secara otomatis dalam 2-3 detik setelah scan.</p>
+                    </div>
+                </div>
+
+                <!-- Feedback Visual Cepat (Sederhana) -->
+                <div id="fast-feedback" class="hidden mt-8 animate__animated animate__zoomIn">
+                    <div id="fb-card" class="rounded-[2.5rem] p-10 shadow-2xl text-white flex flex-col items-center justify-center">
+                        <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        </div>
+                        <span id="fb-status" class="text-xl font-black uppercase tracking-tighter">Berhasil</span>
+                        <p class="text-[10px] font-bold uppercase tracking-widest mt-2 opacity-80">Lihat urutan Anda di Monitor</p>
                     </div>
                 </div>
             </div>
@@ -65,7 +79,7 @@
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden text-sm flex flex-col h-full">
                 <div class="p-8 bg-slate-900 text-white flex justify-between items-center shrink-0">
                     <div>
-                        <h2 class="text-lg font-bold uppercase tracking-tight italic">Monitor Antrean (Tunggu 2-3 Detik data akan terupdate otomatis)</h2>
+                        <h2 class="text-lg font-bold uppercase tracking-tight italic">Monitor Antrean</h2>
                         <p class="text-[9px] font-bold opacity-50 uppercase tracking-widest mt-1">Sesi Real-Time</p>
                     </div>
                     <span id="update-time" class="text-[9px] font-bold opacity-50 uppercase bg-white/10 px-3 py-1.5 rounded-lg">Update: --:--</span>
@@ -132,19 +146,9 @@
                 }
                 
                 if (rawList.length > 0) {
-                    // FILTER: Jangan tampilkan "Start Point" (NIM 000000)
                     const filtered = rawList.filter(item => item.nim && item.nim.toString() !== "000000" && item.nim.toString() !== "NIM_KTM");
-                    
-                    // Pisahkan data Menunggu dan Selesai
-                    const waiting = filtered
-                        .filter(i => !i.isVerified)
-                        .sort((a, b) => parseInt(a.id) - parseInt(b.id)); // FIFO: Lama di atas
-                    
-                    const completed = filtered
-                        .filter(i => i.isVerified)
-                        .sort((a, b) => parseInt(b.id) - parseInt(a.id)); // LIFO: Terbaru di atas
-                    
-                    // Gabungkan kembali
+                    const waiting = filtered.filter(i => !i.isVerified).sort((a, b) => parseInt(a.id) - parseInt(b.id));
+                    const completed = filtered.filter(i => i.isVerified).sort((a, b) => parseInt(b.id) - parseInt(a.id));
                     allData = [...waiting, ...completed];
                 } else {
                     allData = [];
@@ -185,7 +189,6 @@
                 return;
             }
 
-            // Temukan index pendaftar yang belum terverifikasi secara global untuk penomoran
             const globalWaitingList = allData.filter(i => !i.isVerified);
 
             tableBody.innerHTML = pageData.map(item => {
@@ -251,12 +254,11 @@
 
         function handleScanSuccess(data) {
             const feedback = document.getElementById('fast-feedback');
-            document.getElementById('fb-id').innerText = data.idFinger || '---';
-            document.getElementById('fb-status').innerText = data.exists ? "DATA TERDAFTAR" : "REGISTRASI BERHASIL";
-            document.getElementById('fb-card').className = `rounded-[2.5rem] p-8 shadow-2xl text-white ${data.exists ? 'bg-amber-500' : 'bg-emerald-600'}`;
+            document.getElementById('fb-status').innerText = data.exists ? "SUDAH TERDAFTAR" : "BERHASIL";
+            document.getElementById('fb-card').className = `rounded-[2.5rem] p-10 shadow-2xl text-white ${data.exists ? 'bg-amber-500' : 'bg-emerald-600'}`;
             
             feedback.classList.remove('hidden');
-            setTimeout(resetScanner, 4000);
+            setTimeout(resetScanner, 2000);
             
             currentPage = 1; 
             refreshData();
