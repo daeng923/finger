@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Fingerprint - UMM</title>
+    <title>Scanner Fingerprint - AIK & MKWK UMM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
@@ -13,17 +13,21 @@
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
-    <!-- GANTI DENGAN URL WEB APP ANDA -->
-    <script>const API_URL = "https://script.google.com/macros/s/AKfycbw3ELFkRdWCcXhIcHvTDho59awwh1UGn4EXJ0OZBLETRyOXgMNVaQYAzjmx4oFeSEu2iA/exec";</script>
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbw3ELFkRdWCcXhIcHvTDho59awwh1UGn4EXJ0OZBLETRyOXgMNVaQYAzjmx4oFeSEu2iA/exec";
+    </script>
 
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div class="max-w-[1600px] mx-auto px-6 h-20 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <div class="w-10 h-10 umm-gradient rounded-xl flex items-center justify-center text-white font-black shadow-lg">UMM</div>
+                <div class="w-10 h-10 umm-gradient rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-red-200">UMM</div>
                 <div>
-                    <h1 class="font-extrabold text-slate-800 text-lg uppercase leading-tight">Scanner Rekam Sidik Jari</h1>
-                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">AIK & MKWK Univ. Muhammadiyah Malang</p>
+                    <h1 class="font-extrabold text-slate-800 text-lg uppercase tracking-tight leading-none">Scanner Terminal</h1>
+                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">AIK & MKWK Univ. Muhammadiyah Malang</p>
                 </div>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Terminal Aktif
             </div>
         </div>
     </nav>
@@ -32,42 +36,59 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <!-- Left: Scan Area -->
             <div class="lg:col-span-4 lg:sticky lg:top-28">
-                <div class="bg-white rounded-[2.5rem] shadow-xl p-8 border border-slate-100">
+                <div class="bg-white rounded-[2.5rem] shadow-xl p-8 border border-slate-100 animate__animated animate__fadeInLeft">
                     <div class="text-center mb-8">
-                        <h2 class="text-2xl font-black text-slate-800 tracking-tight">Pendaftaran</h2>
+                        <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09a13.916 13.916 0 002.103-4.41M8 11c0-3.314 2.686-6 6-6s6 2.686 6 6a12 12 0 01-2 7c-1.888 3.607-4.426 5.815-9 8m0 0V21m0 0H9m11 0v-2" stroke-width="2" stroke-linecap="round"></path></svg>
+                        </div>
+                        <h2 class="text-2xl font-black text-slate-800">Registrasi</h2>
                         <p class="text-slate-400 text-[10px] font-black uppercase mt-1">Tempelkan KTM Mahasiswa</p>
                     </div>
-                    <div class="relative">
+
+                    <div class="relative group">
                         <input type="text" id="nimInput" autocomplete="off" class="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-3xl text-center text-4xl font-black text-slate-700 focus:border-red-600 outline-none transition-all" placeholder="----">
-                        <div id="scan-loading" class="hidden absolute right-6 top-1/2 -translate-y-1/2"><div class="animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-b-red-600"></div></div>
+                        <div id="scan-loading" class="hidden absolute right-6 top-1/2 -translate-y-1/2">
+                            <div class="animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-b-red-600"></div>
+                        </div>
                     </div>
+                    
                     <div id="fast-feedback" class="hidden mt-8 animate__animated animate__zoomIn text-center">
                         <div id="fb-card" class="rounded-[2rem] p-8 text-center shadow-2xl text-white mb-6">
                             <span id="fb-status" class="text-[10px] font-black uppercase tracking-widest block mb-2 opacity-80"></span>
-                            <div id="fb-id" class="text-7xl font-black font-mono leading-none tracking-tighter mb-4">---</div>
-                            <div id="fb-msg" class="text-[11px] font-bold px-5 py-2.5 bg-black/10 rounded-2xl inline-block italic"></div>
+                            <div id="fb-id" class="text-7xl font-black font-mono tracking-tighter mb-4">---</div>
+                            <div id="fb-msg" class="text-[10px] font-bold px-5 py-2.5 bg-black/10 rounded-2xl inline-block italic"></div>
                         </div>
-                        <div class="bg-slate-50 p-4 rounded-3xl border border-slate-200 flex flex-col items-center gap-2">
-                            <img id="qr-result" class="w-40 h-40 rounded-lg shadow-sm" src="" alt="QR">
-                            <p class="text-[9px] font-bold text-slate-500 uppercase mt-2">PINDAI UNTUK CEK STATUS MANDIRI</p>
+                        <!-- QR Code Area -->
+                        <div id="qr-container" class="bg-slate-50 p-4 rounded-3xl border border-slate-200 flex flex-col items-center gap-2">
+                            <img id="qr-result" class="w-44 h-44 rounded-xl shadow-sm bg-white" src="" alt="QR">
+                            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-tighter mt-2">PINDAI UNTUK CEK STATUS MANDIRI</p>
+                        </div>
+                    </div>
+
+                    <div id="ready-status" class="text-center py-10">
+                        <div class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-50 rounded-2xl text-emerald-700 border border-emerald-100">
+                            <span class="relative flex h-2 w-2"><span class="animate-ping absolute h-full w-full bg-emerald-400 rounded-full"></span><span class="bg-emerald-500 h-2 w-2 rounded-full"></span></span>
+                            <span class="text-[10px] font-black uppercase">Terminal Ready</span>
                         </div>
                     </div>
                 </div>
             </div>
+
             <!-- Right: Live Monitor -->
             <div class="lg:col-span-8">
-                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden">
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden animate__animated animate__fadeInRight">
                     <div class="p-8 bg-slate-900 text-white flex justify-between items-center">
-                        <h2 class="text-xl font-bold uppercase tracking-tight">Monitor Antrean</h2>
+                        <h2 class="text-xl font-bold uppercase tracking-tight">Monitor Antrean Real-Time</h2>
+                        <span class="bg-blue-600 text-[10px] px-2 py-1 rounded font-black">LIVE</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
                             <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-black tracking-widest">
                                 <tr>
-                                    <th class="px-8 py-6">Pukul</th>
+                                    <th class="px-8 py-6 text-center">ID</th>
                                     <th class="px-8 py-6">NIM</th>
-                                    <th class="px-8 py-6 text-center">ID Finger</th>
-                                    <th class="px-8 py-6">Status</th>
+                                    <th class="px-8 py-6">Nama Mahasiswa</th>
+                                    <th class="px-8 py-6">Status Rekam</th>
                                 </tr>
                             </thead>
                             <tbody id="user-table-body" class="divide-y divide-slate-50"></tbody>
@@ -81,7 +102,7 @@
     <script>
         const nimInput = document.getElementById('nimInput');
         window.onload = () => { nimInput.focus(); refreshData(); setInterval(refreshData, 5000); };
-        document.onclick = () => nimInput.focus();
+        document.onclick = () => { if(!nimInput.disabled) nimInput.focus(); };
 
         nimInput.onkeypress = (e) => {
             if (e.key === 'Enter') {
@@ -93,50 +114,80 @@
         async function executeScan(nim) {
             nimInput.disabled = true;
             document.getElementById('scan-loading').classList.remove('hidden');
+            document.getElementById('ready-status').classList.add('hidden');
+            document.getElementById('fast-feedback').classList.add('hidden');
+
             try {
                 const response = await fetch(`${API_URL}?action=scan&nim=${nim}`);
                 const res = await response.json();
-                handleScanSuccess(res);
+                
+                if (res.error) {
+                    handleScanError(res.error);
+                } else {
+                    handleScanSuccess(res);
+                }
                 refreshData();
-            } catch (err) { alert("Gagal koneksi ke API"); resetScanner(); }
+            } catch (err) { 
+                alert("Gagal koneksi ke API Backend."); 
+                resetScanner(); 
+            }
         }
 
         function handleScanSuccess(res) {
             document.getElementById('scan-loading').classList.add('hidden');
             const feedback = document.getElementById('fast-feedback');
+            document.getElementById('qr-container').classList.remove('hidden');
             document.getElementById('fb-id').innerText = res.idFinger;
-            document.getElementById('qr-result').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.origin + '/search.html')}`;
+            
+            const searchUrl = window.location.origin + window.location.pathname.replace('scanner.html', 'search.html');
+            document.getElementById('qr-result').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(searchUrl)}`;
+            
             feedback.classList.remove('hidden');
-            document.getElementById('fb-card').className = `rounded-[2rem] p-8 shadow-2xl text-white ${res.exists ? 'bg-amber-500' : 'bg-emerald-600'}`;
+            document.getElementById('fb-card').className = `rounded-[2rem] p-8 shadow-2xl text-white animate__animated animate__zoomIn ${res.exists ? 'bg-amber-500' : 'bg-emerald-600'}`;
             document.getElementById('fb-status').innerText = res.exists ? "DATA TERDAFTAR" : "REGISTRASI SUKSES";
-            document.getElementById('fb-msg').innerText = "LANJUT KE MEJA MESIN";
+            document.getElementById('fb-msg').innerText = "SILAKAN KE MEJA MESIN";
             setTimeout(resetScanner, 4000);
         }
 
+        function handleScanError(message) {
+            document.getElementById('scan-loading').classList.add('hidden');
+            const feedback = document.getElementById('fast-feedback');
+            document.getElementById('qr-container').classList.add('hidden');
+            
+            document.getElementById('fb-id').innerText = "ERR";
+            feedback.classList.remove('hidden');
+            document.getElementById('fb-card').className = `rounded-[2rem] p-8 shadow-2xl bg-red-600 text-white animate__animated animate__shakeX`;
+            document.getElementById('fb-status').innerText = "AKSES DITOLAK";
+            document.getElementById('fb-msg').innerText = message;
+            setTimeout(resetScanner, 6000);
+        }
+
         function resetScanner() {
-            nimInput.value = ''; nimInput.disabled = false;
+            nimInput.value = ''; 
+            nimInput.disabled = false;
             document.getElementById('fast-feedback').classList.add('hidden');
+            document.getElementById('ready-status').classList.remove('hidden');
             nimInput.focus();
         }
 
         async function refreshData() {
             try {
-                const response = await fetch(`${API_URL}?action=list`);
+                const response = await fetch(`${API_URL}?action=list&order=newest`);
                 const data = await response.json();
                 const tbody = document.getElementById('user-table-body');
                 tbody.innerHTML = data.map(item => `
                     <tr class="hover:bg-slate-50 transition-all">
-                        <td class="px-8 py-6 text-[10px] font-bold text-slate-400">${item.time}</td>
+                        <td class="px-8 py-6 text-center"><span class="bg-slate-900 text-white px-5 py-2 rounded-2xl font-mono font-black text-xl shadow-lg">${item.id}</span></td>
                         <td class="px-8 py-6 font-black text-slate-700">${item.nim}</td>
-                        <td class="px-8 py-6 text-center"><span class="bg-slate-900 text-white px-5 py-2 rounded-2xl font-mono font-black">${item.id}</span></td>
+                        <td class="px-8 py-6 font-medium text-slate-500 text-sm uppercase">${item.nama || '-'}</td>
                         <td class="px-8 py-6">
-                            <span class="px-4 py-2 rounded-full text-[9px] font-black uppercase ${item.isVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-red-50 text-red-600 animate-pulse'}">
-                                ${item.isVerified ? '✓ Terverifikasi' : '⌛ Menunggu Perekaman'}
+                            <span class="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border ${item.isVerified ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100 animate-pulse'}">
+                                ${item.isVerified ? '✓ Terverifikasi' : '⌛ Menunggu Jari'}
                             </span>
                         </td>
                     </tr>
                 `).join('');
-            } catch (e) {}
+            } catch (e) { console.error("Refresh Error:", e); }
         }
     </script>
 </body>
