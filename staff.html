@@ -35,7 +35,7 @@
 
     <main class="max-w-[1000px] mx-auto p-6">
         <div class="mb-6 flex justify-between items-center px-4">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Daftar Tunggu Antrean (FIFO)</span>
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Daftar Tunggu (Urutan ID Terkecil ke Terbesar)</span>
             <span id="queue-count" class="bg-red-100 text-red-700 text-[10px] px-3 py-1 rounded-full font-black uppercase">0 Mahasiswa</span>
         </div>
 
@@ -59,12 +59,16 @@
             icon.classList.add('animate-spin');
             
             try {
-                // Parameter order=oldest agar antrean pertama masuk ada di posisi PALING ATAS
-                const response = await fetch(`${API_URL}?action=list&order=oldest`);
+                const response = await fetch(`${API_URL}?action=list`);
                 const data = await response.json();
                 const list = document.getElementById('admin-list');
                 
-                const pending = data.filter(i => !i.isVerified);
+                // 1. Filter hanya yang belum diverifikasi
+                // 2. Sortir secara numerik berdasarkan ID (ID Rendah ke ID Tinggi)
+                const pending = data
+                    .filter(i => !i.isVerified)
+                    .sort((a, b) => parseInt(a.id) - parseInt(b.id));
+                
                 document.getElementById('admin-empty').classList.toggle('hidden', pending.length > 0);
                 document.getElementById('queue-count').innerText = `${pending.length} Mahasiswa`;
                 
@@ -79,12 +83,12 @@
                                 <div class="flex items-center gap-3 mt-1">
                                     <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest italic">Masuk: ${item.time}</span>
                                     <div class="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse"></div>
-                                    <span class="text-[11px] font-black text-red-600 uppercase tracking-tighter">Urutan #${index + 1}</span>
+                                    <span class="text-[11px] font-black text-red-600 uppercase tracking-tighter">Proses ID #${item.id}</span>
                                 </div>
                             </div>
                         </div>
                         <button onclick="confirmRec('${item.nim}', '${item.id}')" class="umm-gradient hover:opacity-90 text-white px-12 py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-xl shadow-red-100 active:scale-95 transition-all flex items-center gap-3">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3" stroke-linecap="round"></path></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3" stroke-linecap="round"></path></svg>
                             Konfirmasi
                         </button>
                     </div>
