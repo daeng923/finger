@@ -68,7 +68,11 @@
                 // Mendukung format data langsung atau objek dengan properti registrations
                 const regs = data.registrations || data; 
                 const list = document.getElementById('admin-list');
-                const pending = regs.filter(i => !i.isVerified);
+                
+                // Urutan antrean diatur agar ID terkecil (pendaftar pertama) muncul paling atas
+                const pending = regs
+                    .filter(i => !i.isVerified)
+                    .sort((a, b) => parseInt(a.id) - parseInt(b.id));
                 
                 document.getElementById('count-badge').innerText = `${pending.length} Mahasiswa`;
                 document.getElementById('admin-empty').classList.toggle('hidden', pending.length > 0);
