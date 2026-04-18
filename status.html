@@ -8,15 +8,40 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            user-select: none; /* Mencegah seleksi teks */
+        }
         .umm-gradient { background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); }
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
-    <!-- GANTI DENGAN URL GAS ANDA -->
     <script>
+        // --- KONFIGURASI API ---
         const API_URL = "https://script.google.com/macros/s/AKfycbzOCnpPS2pI4ObD3Oh_8IJMdFVIdvNlegmeWB22aVYKRQxbjSv4kGjLp9H3ma5ThL5SEA/exec";
+
+        // --- PENGAMANAN SEDERHANA ---
+        // 1. Nonaktifkan Klik Kanan
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // 2. Nonaktifkan F12 dan Shortcut Inspect lainnya
+        document.onkeydown = function (e) {
+            // Disable F12
+            if (e.keyCode == 123) return false;
+            
+            // Disable Ctrl+Shift+I (Inspect)
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 73) return false;
+            
+            // Disable Ctrl+Shift+C (Element Selector)
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 67) return false;
+            
+            // Disable Ctrl+Shift+J (Console)
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 74) return false;
+            
+            // Disable Ctrl+U (View Source)
+            if (e.ctrlKey && e.keyCode == 85) return false;
+        };
     </script>
 
     <div class="max-w-md w-full">
@@ -32,15 +57,13 @@
             <div class="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"></path></svg>
             </div>
-            <p class="text-slate-600 text-sm mb-6 font-medium">Masukkan NIM Anda untuk melihat hasil verifikasi perekaman sidik jari.</p>
+            <p class="text-slate-600 text-sm mb-6 font-medium">Silakan masukkan NIM Anda untuk memverifikasi status perekaman sidik jari.</p>
             
             <div class="relative mb-4">
-                <input type="text" id="nimInput" class="w-full p-5 bg-slate-100 border-2 border-transparent focus:border-red-600 focus:bg-white rounded-2xl text-center text-2xl font-black text-slate-700 outline-none transition-all shadow-inner" placeholder="KETIK NIM">
+                <input type="text" id="nimInput" class="w-full p-5 bg-slate-100 border-2 border-transparent focus:border-red-600 focus:bg-white rounded-2xl text-center text-2xl font-black text-slate-700 outline-none transition-all shadow-inner" placeholder="MASUKKAN NIM" autocomplete="off">
             </div>
             
             <button onclick="handleCheck()" id="btnCheck" class="w-full umm-gradient text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all">Periksa Sekarang</button>
-            
-            <p class="mt-6 text-[10px] text-slate-400 font-bold uppercase tracking-tighter italic">Gunakan NIM resmi yang terdaftar di Master Data</p>
         </div>
 
         <!-- Result Card -->
@@ -50,8 +73,6 @@
                     <h3 class="text-xs font-black uppercase tracking-widest opacity-80">Kartu Verifikasi Digital</h3>
                     <p class="text-[9px] font-bold uppercase mt-1">Sistem Fingerprint AIK & MKWK</p>
                 </div>
-                <!-- Dekorasi Background -->
-                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
             </div>
 
             <div class="p-10 text-center">
@@ -70,9 +91,9 @@
                     </div>
                 </div>
 
-                <div id="res-alert" class="hidden p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-[10px] font-black leading-tight mb-8 animate__animated animate__headShake">
-                    BELUM TERVERIFIKASI?<br>
-                    <span class="font-bold opacity-70 uppercase text-[9px]">Silakan segera melapor ke petugas perekaman.</span>
+                <div id="res-alert" class="hidden p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-[10px] font-black leading-tight mb-8">
+                    DATA BELUM TERVERIFIKASI<br>
+                    <span class="font-bold opacity-70 uppercase text-[8px]">Mohon hubungi petugas di Meja Mesin.</span>
                 </div>
 
                 <button onclick="location.reload()" class="flex items-center gap-2 mx-auto text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-red-600 transition-all">
@@ -89,7 +110,7 @@
             if(!nim) return;
 
             const btn = document.getElementById('btnCheck');
-            btn.innerText = "MENGAMBIL DATA...";
+            btn.innerText = "SEDANG MEMPROSES...";
             btn.disabled = true;
 
             try {
@@ -97,7 +118,7 @@
                 const data = await response.json();
                 
                 if(!data) {
-                    alert("Data tidak ditemukan. Pastikan Anda sudah melakukan scan di meja pendaftaran.");
+                    alert("Data tidak ditemukan di database perekaman hari ini.");
                     location.reload();
                     return;
                 }
@@ -105,7 +126,7 @@
                 document.getElementById('search-box').classList.add('hidden');
                 document.getElementById('result-box').classList.remove('hidden');
                 
-                // Isi Data Ke Kartu
+                // Set data ke UI
                 document.getElementById('res-id').innerText = data.id;
                 document.getElementById('res-nim').innerText = data.nim;
                 
@@ -121,17 +142,16 @@
                 } else {
                     badge.className = "px-5 py-2 rounded-full text-[10px] font-black uppercase border border-red-200 bg-red-50 text-red-600 mb-8 inline-flex items-center gap-2 shadow-sm";
                     dot.className = "w-2 h-2 rounded-full bg-red-500";
-                    statusText.innerText = "MENUNGGU PEREKAMAN";
+                    statusText.innerText = "MENUNGGU JARI";
                     document.getElementById('res-alert').classList.remove('hidden');
                 }
             } catch(e) {
-                alert("Gagal terhubung ke sistem. Coba beberapa saat lagi.");
+                alert("Gangguan koneksi API.");
                 btn.innerText = "COBA LAGI";
                 btn.disabled = false;
             }
         }
 
-        // Input enter trigger
         document.getElementById('nimInput').onkeypress = (e) => {
             if(e.key === 'Enter') handleCheck();
         };
