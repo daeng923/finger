@@ -8,190 +8,118 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            user-select: none;
-            -webkit-user-select: none;
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; user-select: none; }
         .umm-gradient { background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); }
-        .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); }
-        .calling-row { background: #fefce8; border-left: 6px solid #f59e0b; }
+        .calling-row { background: #fffbeb; border-left: 8px solid #f59e0b; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
-
-    <!-- MODAL ERROR / NOTIFIKASI -->
-    <div id="statusModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 modal-overlay animate__animated animate__fadeIn">
-        <div class="bg-white rounded-[2.5rem] shadow-2xl max-w-sm w-full p-10 text-center animate__animated animate__zoomIn">
-            <div id="modalIcon" class="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6"></div>
-            <h3 id="modalTitle" class="text-xl font-black text-slate-800 mb-2 uppercase tracking-tighter">Status</h3>
-            <p id="modalText" class="text-slate-500 text-sm leading-relaxed mb-8"></p>
-            <button onclick="closeModal()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-800 transition-all">Tutup</button>
-        </div>
-    </div>
+<body class="bg-slate-50 min-h-screen pb-20">
 
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 h-20 flex items-center px-6 justify-between">
         <div class="flex items-center gap-4">
-            <div class="w-10 h-10 umm-gradient rounded-xl flex items-center justify-center text-white font-black shadow-lg">UMM</div>
-            <div>
-                <h1 class="font-extrabold text-slate-800 uppercase text-sm leading-none">Scanner Terminal</h1>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Meja Pendaftaran Lantai 2</p>
-            </div>
+            <div class="w-10 h-10 umm-gradient rounded-xl flex items-center justify-center text-white font-black">UMM</div>
+            <h1 class="font-extrabold text-slate-800 uppercase text-sm">Scanner Terminal</h1>
         </div>
         <div class="flex items-center gap-3">
-            <button id="voiceToggle" onclick="enableVoice()" class="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-tighter hover:bg-red-50 hover:text-red-600 transition-all">
-                <span id="voiceIcon">🔇</span> <span id="voiceText">Suara Mati</span>
+            <!-- WAJIB DIKLIK AGAR SUARA AKTIF -->
+            <button id="voiceBtn" onclick="initVoice()" class="flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl text-xs font-black uppercase transition-all">
+                <span id="vIcon">🔇</span> <span id="vText">Aktifkan Suara</span>
             </button>
-            <div id="queue-status" class="hidden md:flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-tighter border border-amber-100">
-                <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span> Panggilan: <span id="current-call-nim" class="ml-1 text-slate-900 font-bold">---</span>
-            </div>
-            <div class="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-tighter">
-                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span> Online
+            <div id="qLabel" class="hidden flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase border border-amber-100">
+                <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span> Panggilan: <span id="qNim" class="text-slate-900 ml-1">---</span>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-[1600px] mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div class="lg:col-span-4 lg:sticky lg:top-28">
-            <div class="bg-white rounded-[2.5rem] shadow-xl p-8 border border-slate-100">
-                <div class="text-center mb-8">
-                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Pendaftaran</h2>
-                    <p class="text-slate-400 text-[10px] font-black uppercase mt-1">Input NIM (15 Digit)</p>
-                </div>
-                <div class="relative">
-                    <input type="text" id="nimInput" maxlength="15" oninput="this.value = this.value.replace(/[^0-9]/g, '')" autocomplete="off" class="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-3xl text-center text-4xl font-black text-slate-700 focus:border-red-600 transition-all outline-none" placeholder="----">
-                </div>
-                
-                <div id="fast-feedback" class="hidden mt-8 animate__animated animate__zoomIn text-center">
-                    <div id="fb-card" class="rounded-[2rem] p-8 shadow-2xl text-white mb-6 bg-emerald-600">
-                        <span id="fb-status" class="text-[10px] font-black uppercase tracking-widest block mb-2 opacity-80">Registrasi Sukses</span>
-                        <div id="fb-id" class="text-7xl font-black font-mono leading-none tracking-tighter mb-4">---</div>
-                        <div class="text-[9px] font-bold px-5 py-2.5 bg-black/10 rounded-2xl inline-block italic uppercase">Silakan Ke Meja Mesin</div>
-                    </div>
-                </div>
+    <main class="max-w-[1400px] mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4">
+            <div class="bg-white rounded-[2.5rem] shadow-xl p-8 border border-slate-100 sticky top-28">
+                <input type="text" id="nimInput" maxlength="15" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-3xl text-center text-4xl font-black text-slate-700 focus:border-red-600 outline-none" placeholder="----">
+                <p class="text-center text-[10px] font-bold text-slate-400 mt-4 uppercase tracking-widest">Input NIM Untuk Antrean</p>
             </div>
         </div>
 
         <div class="lg:col-span-8">
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden">
-                <div class="p-8 bg-slate-900 text-white flex justify-between items-center">
-                    <h2 class="text-xl font-bold uppercase tracking-tight">Monitor Antrean</h2>
-                    <span class="text-[10px] font-black bg-white/10 px-4 py-2 rounded-full uppercase">Update: <span id="last-update">--:--</span></span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b">
-                            <tr>
-                                <th class="px-8 py-6 text-center">ID Finger</th>
-                                <th class="px-8 py-6">NIM Mahasiswa</th>
-                                <th class="px-8 py-6">Waktu</th>
-                                <th class="px-8 py-6">Informasi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="user-table-body" class="divide-y divide-slate-100 text-slate-700"></tbody>
-                    </table>
-                </div>
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-slate-400 text-[10px] font-black uppercase border-b">
+                        <tr>
+                            <th class="px-8 py-6 text-center">ID</th>
+                            <th class="px-8 py-6">NIM Mahasiswa</th>
+                            <th class="px-8 py-6">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
             </div>
         </div>
     </main>
 
+    <!-- LOG DEBUG UNTUK ADMIN -->
+    <div id="debugLog" class="fixed bottom-4 right-4 text-[9px] bg-black/80 text-white p-2 rounded-lg font-mono opacity-50">Sistem Siap...</div>
+
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzOCnpPS2pI4ObD3Oh_8IJMdFVIdvNlegmeWB22aVYKRQxbjSv4kGjLp9H3ma5ThL5SEA/exec";
-        const nimInput = document.getElementById('nimInput');
-        
-        let isVoiceEnabled = false;
-        let lastTriggerTime = 0; // Waktu trigger pemicu dari admin
+        const API_URL = "https://script.google.com/macros/s/AKfycbxiuQXcJvrw9vE2FutImOIP6ysmsOsDK5O3zko_wBDtQfp7OPCI9OzF45o1lriW4WfRPA/exec";
+        let isVoiceReady = false;
+        let lastCallTime = 0;
 
-        // Security
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.onkeydown = e => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && [73, 67, 74].includes(e.keyCode)) || (e.ctrlKey && e.keyCode == 85)) return false; };
-
-        window.onload = () => { 
-            nimInput.focus(); 
-            refreshData(); 
-            setInterval(refreshData, 3000); // Polling lebih cepat untuk responsivitas suara
-        };
-        
-        function enableVoice() {
-            isVoiceEnabled = !isVoiceEnabled;
-            const btn = document.getElementById('voiceToggle');
-            const icon = document.getElementById('voiceIcon');
-            const text = document.getElementById('voiceText');
-            
-            if(isVoiceEnabled) {
-                btn.className = "flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-full text-[10px] font-black uppercase tracking-tighter shadow-lg transition-all";
-                icon.innerText = "🔊";
-                text.innerText = "Suara Aktif";
-                panggilNIM("Suara panggil aktif");
-            } else {
-                btn.className = "flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-tighter";
-                icon.innerText = "🔇";
-                text.innerText = "Suara Mati";
-            }
+        function initVoice() {
+            isVoiceReady = true;
+            document.getElementById('voiceBtn').className = "flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-2xl text-xs font-black uppercase shadow-lg";
+            document.getElementById('vIcon').innerText = "🔊";
+            document.getElementById('vText').innerText = "Suara Aktif";
+            speak("Sistem suara aktif");
         }
 
-        function panggilNIM(teks) {
-            if (!isVoiceEnabled) return;
-            const synth = window.speechSynthesis;
-            synth.cancel(); // Hentikan suara sebelumnya jika admin tekan tombol panggil berkali-kali
-            const utterThis = new SpeechSynthesisUtterance(teks);
-            utterThis.lang = 'id-ID';
-            utterThis.rate = 0.9;
-            synth.speak(utterThis);
+        function speak(text) {
+            if (!isVoiceReady) return;
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'id-ID';
+            msg.rate = 0.9;
+            window.speechSynthesis.speak(msg);
         }
 
-        async function refreshData() {
+        async function updateData() {
             try {
-                const response = await fetch(`${API_URL}?action=list`);
-                const data = await response.json();
-                const tbody = document.getElementById('user-table-body');
-                document.getElementById('last-update').innerText = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+                const res = await fetch(`${API_URL}?action=list`);
+                const data = await responseJson = await res.json();
                 
-                const regs = data.registrations;
-                const lastCall = data.lastCall;
+                const registrations = data.registrations || [];
+                const lastCall = data.lastCall || { nim: "", time: "0" };
 
-                // LOGIKA PEMICU SUARA (TRIGGER ADMIN)
-                if(lastCall.nim && lastCall.time > lastTriggerTime) {
-                    lastTriggerTime = lastCall.time;
-                    panggilNIM(`Nomor Induk Mahasiswa ${lastCall.nim.split('').join(' ')}, silakan menuju meja mesin sidik jari.`);
+                // Deteksi Panggilan Manual
+                const serverTime = Number(lastCall.time);
+                if (serverTime > lastCallTime && lastCall.nim !== "") {
+                    lastCallTime = serverTime;
+                    document.getElementById('debugLog').innerText = "Sinyal Panggilan Diterima: " + lastCall.nim;
+                    speak(`Nomor Induk Mahasiswa ${lastCall.nim.split('').join(' ')}, silakan menuju meja mesin.`);
                 }
 
-                if(lastCall.nim) {
-                    document.getElementById('queue-status').classList.remove('hidden');
-                    document.getElementById('current-call-nim').innerText = lastCall.nim;
+                if (lastCall.nim) {
+                    document.getElementById('qLabel').classList.remove('hidden');
+                    document.getElementById('qNim').innerText = lastCall.nim;
                 }
 
-                tbody.innerHTML = regs.map(item => {
+                document.getElementById('tableBody').innerHTML = registrations.map(item => {
                     const isCalled = item.nim === lastCall.nim && !item.isVerified;
-                    const rowClass = isCalled ? 'calling-row animate__animated animate__pulse animate__infinite' : '';
-                    
                     return `
-                    <tr class="transition-all ${rowClass}">
-                        <td class="px-8 py-6 text-center">
-                            <span class="bg-slate-900 text-white px-5 py-2 rounded-2xl font-mono font-black text-xl">${item.id}</span>
-                        </td>
-                        <td class="px-8 py-6 font-black text-slate-800 text-lg">${item.nim}</td>
-                        <td class="px-8 py-6 text-slate-400 font-bold text-[10px] uppercase">${item.time}</td>
+                    <tr class="${isCalled ? 'calling-row animate__animated animate__pulse animate__infinite' : ''}">
+                        <td class="px-8 py-6 text-center"><span class="bg-slate-900 text-white px-4 py-2 rounded-xl font-black">${item.id}</span></td>
+                        <td class="px-8 py-6 font-black text-lg">${item.nim}</td>
                         <td class="px-8 py-6">
-                            <span class="px-4 py-2 rounded-xl text-[10px] font-black uppercase border ${item.isVerified ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-400'}">
-                                ${item.isVerified ? '✓ Terverifikasi' : (isCalled ? '📢 Dipanggil' : '⌛ Antre')}
+                            <span class="text-[10px] font-black uppercase ${item.isVerified ? 'text-emerald-600' : 'text-amber-600'}">
+                                ${item.isVerified ? '✓ Selesai' : (isCalled ? '📢 Dipanggil' : '⌛ Antre')}
                             </span>
                         </td>
                     </tr>`;
                 }).join('');
-            } catch(e) {}
+            } catch (e) {
+                console.error(e);
+            }
         }
 
-        // Fungsi scanner dan modal tetap dipertahankan seperti versi sebelumnya...
-        function showModal(title, text, color) {
-            const modal = document.getElementById('statusModal'), icon = document.getElementById('modalIcon');
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalText').innerText = text;
-            icon.className = "w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6";
-            icon.innerHTML = '<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-width="2"></path></svg>';
-            modal.classList.remove('hidden');
-        }
-        function closeModal() { document.getElementById('statusModal').classList.add('hidden'); nimInput.focus(); }
+        window.onload = () => { setInterval(updateData, 3000); updateData(); };
     </script>
 </body>
 </html>
