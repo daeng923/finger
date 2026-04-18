@@ -127,13 +127,28 @@
                 const res = await fetch(`${API_URL}?action=list`);
                 const data = await res.json();
                 
-                // Pastikan data adalah array (DataFingerprint)
-                allData = (data.registrations || data || []).reverse(); 
+                // Perbaikan deteksi format data dari backend
+                let rawList = [];
+                if (data && data.registrations && Array.isArray(data.registrations)) {
+                    rawList = data.registrations;
+                } else if (Array.isArray(data)) {
+                    rawList = data;
+                } else if (data && data.error) {
+                    console.error("Server error:", data.error);
+                    return;
+                }
+                
+                // Pastikan data yang diterima valid sebelum diproses
+                if (rawList.length > 0) {
+                    allData = [...rawList].reverse(); 
+                } else {
+                    allData = [];
+                }
                 
                 document.getElementById('last-update').innerText = "Update: " + new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
                 renderTable();
             } catch(e) {
-                console.error("Gagal memuat data:", e);
+                console.error("Gagal memuat data dari spreadsheet:", e);
             }
         }
 
@@ -142,7 +157,7 @@
             const totalItems = allData.length;
             const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-            // Validasi currentPage agar tidak out of bounds setelah refresh
+            // Validasi currentPage
             if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
             if (currentPage < 1) currentPage = 1;
 
@@ -150,30 +165,29 @@
             const endIdx = Math.min(startIdx + itemsPerPage, totalItems);
             const pageData = allData.slice(startIdx, endIdx);
 
-            // Update statistik
+            // Update statistik UI
             document.getElementById('pageStart').innerText = totalItems === 0 ? 0 : startIdx + 1;
             document.getElementById('pageEnd').innerText = endIdx;
             document.getElementById('totalItems').innerText = totalItems;
 
-            // Update tombol
-            document.getElementById('prevBtn').disabled = (currentPage === 1);
-            document.getElementById('nextBtn').disabled = (currentPage === totalPages || totalPages === 0);
+            document.getElementById('prevBtn').disabled = (currentPage <= 1);
+            document.getElementById('nextBtn').disabled = (currentPage >= totalPages || totalPages === 0);
 
             if (totalItems === 0) {
-                tableBody.innerHTML = `<tr><td colspan="4" class="px-8 py-20 text-center text-slate-300 font-black uppercase italic tracking-widest text-xs">Belum ada antrean hari ini</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="4" class="px-8 py-20 text-center text-slate-300 font-black uppercase italic tracking-widest text-xs">Belum ada antrean yang masuk</td></tr>`;
                 return;
             }
 
             tableBody.innerHTML = pageData.map(item => `
                 <tr class="hover:bg-slate-50/50 transition-all animate__animated animate__fadeIn">
                     <td class="px-8 py-6 text-center">
-                        <span class="bg-slate-900 text-white px-5 py-2 rounded-2xl font-mono font-black text-xl shadow-lg">${item.id}</span>
+                        <span class="bg-slate-900 text-white px-5 py-2 rounded-2xl font-mono font-black text-xl shadow-lg">${item.id || '---'}</span>
                     </td>
                     <td class="px-8 py-6">
-                        <div class="font-black text-slate-800 text-lg">${item.nim}</div>
+                        <div class="font-black text-slate-800 text-lg">${item.nim || '---'}</div>
                         <div class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">${item.nama || 'Mahasiswa'}</div>
                     </td>
-                    <td class="px-8 py-6 text-slate-400 font-bold text-[10px] uppercase">${item.time}</td>
+                    <td class="px-8 py-6 text-slate-400 font-bold text-[10px] uppercase">${item.time || '--:--'}</td>
                     <td class="px-8 py-6 text-center">
                         <span class="px-4 py-2 rounded-xl text-[10px] font-black uppercase border ${item.isVerified ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-100 text-slate-400 border-slate-200'}">
                             ${item.isVerified ? '✓ Selesai' : '⌛ Antre'}
@@ -219,14 +233,13 @@
 
         function handleScanSuccess(data) {
             const feedback = document.getElementById('fast-feedback');
-            document.getElementById('fb-id').innerText = data.idFinger;
+            document.getElementById('fb-id').innerText = data.idFinger || '---';
             document.getElementById('fb-status').innerText = data.exists ? "DATA TERDAFTAR" : "REGISTRASI BERHASIL";
             document.getElementById('fb-card').className = `rounded-[2.5rem] p-8 shadow-2xl text-white ${data.exists ? 'bg-amber-500' : 'bg-emerald-600'}`;
             
             feedback.classList.remove('hidden');
             setTimeout(resetScanner, 4000);
             
-            // Pindahkan ke halaman 1 agar mahasiswa bisa melihat input barunya
             currentPage = 1; 
             refreshData();
         }
